@@ -1,0 +1,49 @@
+<div align="center">
+
+# 🎮 网络小游戏（Web Mini‑Games）
+
+[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel)](https://vercel.com/)
+[![Version](https://img.shields.io/badge/Version-0.25-blue.svg)]()
+
+**语言 / Language：** **中文** · [English](./README.en.md)
+
+</div>
+
+---
+
+## 项目介绍
+这是一个可直接部署到 Vercel 的 Next.js（App Router）网页小游戏合集。主页提供**可点击切换的中英双语**介绍，包含每个小游戏的玩法、操作说明、目标与视觉特点。
+
+- **站点入口：** `/`
+- **更新日志：** [CHANGELOG.md](./CHANGELOG.md)（中文）· [CHANGELOG.en.md](./CHANGELOG.en.md)
+
+## 小游戏一览
+
+### 🎮 Cyber Match（记忆翻牌）
+- **入口：** `/game`
+- **玩法：** 网格中隐藏着成对符号。点击卡片翻开；连续翻开的两张卡片若图案相同则保持翻开并触发霓虹闪烁，否则会在短暂延迟后自动翻回。
+- **目标：** 找到并匹配所有卡片对，完成“系统破解”。
+- **视觉：** 玻璃拟态面板 + 3D 翻转动画 + 霓虹光晕。
+
+### 🎮 Neon Tetris（霓虹俄罗斯方块）
+- **入口：** `/tetris`
+- **玩法：** 经典俄罗斯方块规则：方块下落、触底固定、满行消除得分，得分/等级提升后下落速度加快。
+- **操作：**
+  - `← / →`：左右移动
+  - `↑`：旋转
+  - `↓`：加速下落
+  - `Space`：硬降落（瞬间落到底部）
+- **移动端：** 自动显示虚拟触控按键。
+- **视觉：** 纯 CSS Grid 渲染 + Tailwind 光效（无 Canvas），保持真实霓虹发光质感。
+
+## 本地运行
+```bash
+npm install
+npm run dev
+```
+打开：http://localhost:3000
+
+## 部署到 Vercel
+将仓库导入 Vercel 后会自动识别 Next.js 并构建部署（根目录已对齐，含 `vercel.json`）。
