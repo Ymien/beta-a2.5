@@ -1,0 +1,330 @@
+"use client";
+
+import { useMemo, useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import SiteHeader from "@/components/SiteHeader";
+
+interface Message {
+  id: string;
+  role: "user" | "ai" | "system";
+  content: string;
+}
+
+export default function ChatInterface() {
+  const models = useMemo(
+    () => [
+      { id: "doubao2.0pro", name: "Doubao Pro", note: "旗舰全能" },
+      { id: "doubao1.8", name: "Doubao 1.8", note: "Agent 优化" },
+      { id: "deepseek", name: "DeepSeek V3", note: "深度推理" },
+      { id: "glm4", name: "GLM-4.7", note: "编程推理" },
+    ],
+    []
+  );
+
+  const [selectedModel, setSelectedModel] = useState(models[0]?.id ?? "doubao2.0pro");
+  const [isModelOpen, setIsModelOpen] = useState(false);
+  const [thinkMode, setThinkMode] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = { id: Date.now().toString(), role: "user", content: input.trim() };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    const aiMessageId = (Date.now() + 1).toString();
+    setMessages((prev) => [...prev, { id: aiMessageId, role: "ai", content: "" }]);
+
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modelId: selectedModel,
+          thinkMode,
+          messages: [...messages, userMessage].map((m) => ({ role: m.role === "ai" ? "assistant" : m.role, content: m.content })),
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let aiText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+        
+        for (const line of lines) {
+          if (line.startsWith("data: ") && line !== "data: [DONE]") {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.choices && data.choices[0]?.delta?.content) {
+                aiText += data.choices[0].delta.content;
+                setMessages((prev) => prev.map((msg) => msg.id === aiMessageId ? { ...msg, content: aiText } : msg));
+              }
+            } catch (e) {
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        setMessages((prev) => [
+          ...prev.filter(m => m.id !== aiMessageId),
+          { id: aiMessageId, role: "system", content: `Error: ${error.message}` }
+        ]);
+      }
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const stop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f7f2e8] text-[#1e1c16]">
+      <SiteHeader active="chat" />
+
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[1fr_360px] md:gap-8 md:px-6 md:py-10">
+        <div className="rounded-3xl border border-black/10 bg-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl">
+          <div className="flex flex-col gap-2 border-b border-black/10 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-2xl bg-black/5 p-2 text-[#1e1c16]">
+                <span className="flex h-full w-full items-center justify-center rounded-xl bg-white/70 text-sm font-semibold">
+                  N
+                </span>
+              </div>
+              <div className="flex flex-col leading-tight">
+                <div className="text-base font-semibold">NeuraChat</div>
+                <div className="text-xs text-black/50">AI 对话体验</div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 md:justify-end">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsModelOpen((v) => !v)}
+                  className="inline-flex items-center gap-2 rounded-full border border-[#d97706]/25 bg-[#fff6ea] px-4 py-2 text-sm font-medium text-[#b45309] shadow-sm transition hover:border-[#d97706]/40 hover:bg-[#fff1dd]"
+                  aria-haspopup="listbox"
+                  aria-expanded={isModelOpen}
+                >
+                  <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
+                  {models.find((m) => m.id === selectedModel)?.name ?? "选择模型"}
+                  <span className="text-[#b45309]/70">▾</span>
+                </button>
+                <div
+                  className={`absolute right-0 top-[calc(100%+10px)] w-[min(340px,calc(100vw-2rem))] rounded-3xl border border-black/10 bg-[#fffaf3] p-2 shadow-[0_22px_70px_rgba(0,0,0,0.18)] ${
+                    isModelOpen ? "block" : "hidden"
+                  }`}
+                  role="listbox"
+                >
+                  {models.map((m) => {
+                    const active = m.id === selectedModel;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedModel(m.id);
+                          setIsModelOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition ${
+                          active ? "bg-black/5" : "hover:bg-black/5"
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <div className="text-sm font-semibold text-[#1e1c16]">
+                            {m.name}
+                          </div>
+                          <div className="text-xs text-black/50">{m.note}</div>
+                        </div>
+                        <div
+                          className={`h-2.5 w-2.5 rounded-full ${
+                            active ? "bg-[#d97706]" : "bg-black/10"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setThinkMode((v) => !v)}
+                className={`rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition ${
+                  thinkMode
+                    ? "border-[#0f766e]/30 bg-[#ecfeff] text-[#0f766e] hover:bg-[#cffafe]"
+                    : "border-black/10 bg-white/60 text-black/60 hover:bg-white"
+                }`}
+              >
+                思考 {thinkMode ? "ON" : "OFF"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  stop();
+                  setMessages([]);
+                }}
+                className="rounded-full border border-black/10 bg-white/60 px-4 py-2 text-sm font-medium text-black/60 shadow-sm transition hover:bg-white"
+              >
+                清空
+              </button>
+            </div>
+          </div>
+
+          <div className="flex h-[calc(100vh-18rem)] flex-col md:h-[calc(100vh-20rem)]">
+            <div className="flex-1 overflow-y-auto px-4 py-5 md:px-6">
+              {messages.length === 0 ? (
+                <div className="mx-auto mt-14 max-w-md text-center text-sm text-black/40">
+                  选择模型并输入内容开始对话
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {messages.map((msg) => {
+                    const isUser = msg.role === "user";
+                    const isSystem = msg.role === "system";
+                    return (
+                      <div
+                        key={msg.id}
+                        className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`max-w-[92%] rounded-3xl border px-4 py-3 text-sm leading-relaxed md:max-w-[80%] ${
+                            isUser
+                              ? "border-black/10 bg-[#1e1c16] text-[#f7f2e8]"
+                              : isSystem
+                              ? "border-red-500/20 bg-red-50 text-red-700"
+                              : "border-black/10 bg-white/70 text-[#1e1c16] shadow-sm"
+                          }`}
+                        >
+                          {isUser || isSystem ? (
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                          ) : (
+                            <div className="prose prose-sm max-w-none prose-p:my-2 prose-pre:my-3 prose-pre:rounded-2xl prose-pre:border prose-pre:border-black/10 prose-pre:bg-black/90 prose-pre:text-white">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {msg.content || "..."}
+                              </ReactMarkdown>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="border-t border-black/10 bg-[#fffaf3] p-4 md:p-6">
+              <form onSubmit={handleSubmit} className="flex items-end gap-3">
+                <div className="flex-1">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e as unknown as React.FormEvent);
+                      }
+                    }}
+                    rows={2}
+                    placeholder="消息…（Enter 发送，Shift+Enter 换行）"
+                    className="w-full resize-none rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-sm text-[#1e1c16] outline-none transition focus:border-[#d97706]/40 focus:ring-2 focus:ring-[#d97706]/20"
+                    disabled={isLoading}
+                  />
+                  <div className="mt-2 text-[11px] text-black/40">
+                    {models.find((m) => m.id === selectedModel)?.name} ·{" "}
+                    {thinkMode ? "深度思考" : "标准模式"} · SSE 流式输出
+                  </div>
+                </div>
+
+                {isLoading ? (
+                  <button
+                    type="button"
+                    onClick={stop}
+                    className="h-11 rounded-2xl border border-red-500/20 bg-red-50 px-5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-100"
+                  >
+                    停止
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!input.trim()}
+                    className="h-11 rounded-2xl bg-[#e7c7a3] px-6 text-sm font-medium text-[#1e1c16] shadow-sm transition hover:bg-[#ddb98f] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    发送
+                  </button>
+                )}
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <aside className="hidden flex-col gap-4 md:flex">
+          <div className="rounded-3xl border border-black/10 bg-white/60 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl">
+            <div className="text-sm font-semibold text-[#1e1c16]">快捷入口</div>
+            <div className="mt-4 grid grid-cols-1 gap-2 text-sm">
+              <Link
+                href="/blog/react-server-components"
+                className="rounded-2xl border border-black/10 bg-white/60 px-4 py-3 text-black/70 transition hover:bg-white"
+              >
+                文章
+              </Link>
+              <Link
+                href="/popup"
+                className="rounded-2xl border border-black/10 bg-white/60 px-4 py-3 text-black/70 transition hover:bg-white"
+              >
+                PopupMorph
+              </Link>
+              <Link
+                href="/tetris"
+                className="rounded-2xl border border-black/10 bg-white/60 px-4 py-3 text-black/70 transition hover:bg-white"
+              >
+                小游戏
+              </Link>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
