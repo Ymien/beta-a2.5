@@ -12,20 +12,23 @@ interface Message {
   content: string;
 }
 
+type ThinkingType = "auto" | "enabled" | "disabled";
+
 export default function ChatInterface() {
   const models = useMemo(
     () => [
       { id: "doubao2.0pro", name: "Doubao Pro", note: "旗舰全能" },
-      { id: "doubao1.8", name: "Doubao 1.8", note: "Agent 优化" },
-      { id: "deepseek", name: "DeepSeek V3", note: "深度推理" },
-      { id: "glm4", name: "GLM-4.7", note: "编程推理" },
+      { id: "doubao1.8", name: "Doubao 1.8", note: "多模态/Agent" },
+      { id: "doubao1.5pro", name: "Doubao 1.5 Pro", note: "32k 对话" },
+      { id: "deepseek3.2", name: "DeepSeek 3.2", note: "深度推理" },
+      { id: "glm4.7", name: "GLM-4.7", note: "编程推理" },
     ],
     []
   );
 
   const [selectedModel, setSelectedModel] = useState(models[0]?.id ?? "doubao2.0pro");
   const [isModelOpen, setIsModelOpen] = useState(false);
-  const [thinkMode, setThinkMode] = useState(false);
+  const [thinkingType, setThinkingType] = useState<ThinkingType>("auto");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +64,7 @@ export default function ChatInterface() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           modelId: selectedModel,
-          thinkMode,
+          thinkingType,
           messages: [...messages, userMessage].map((m) => ({ role: m.role === "ai" ? "assistant" : m.role, content: m.content })),
         }),
         signal: abortControllerRef.current.signal,
@@ -86,16 +89,34 @@ export default function ChatInterface() {
         const lines = chunk.split("\n");
         
         for (const line of lines) {
-          if (line.startsWith("data: ") && line !== "data: [DONE]") {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.choices && data.choices[0]?.delta?.content) {
-                aiText += data.choices[0].delta.content;
-                setMessages((prev) => prev.map((msg) => msg.id === aiMessageId ? { ...msg, content: aiText } : msg));
-              }
-            } catch (e) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const payload = trimmed.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+
+          try {
+            const data = JSON.parse(payload);
+
+            const deltaText =
+              (typeof data?.choices?.[0]?.delta?.content === "string" &&
+                data.choices[0].delta.content) ||
+              (typeof data?.delta === "string" && data.delta) ||
+              (data?.type === "response.output_text.delta" &&
+                typeof data?.delta === "string" &&
+                data.delta) ||
+              (data?.type === "response.output_text.done" &&
+                typeof data?.text === "string" &&
+                data.text);
+
+            if (typeof deltaText === "string" && deltaText.length > 0) {
+              aiText += deltaText;
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === aiMessageId ? { ...msg, content: aiText } : msg
+                )
+              );
             }
-          }
+          } catch (e) {}
         }
       }
     } catch (error: any) {
@@ -188,14 +209,20 @@ export default function ChatInterface() {
 
               <button
                 type="button"
-                onClick={() => setThinkMode((v) => !v)}
+                onClick={() =>
+                  setThinkingType((v) =>
+                    v === "auto" ? "enabled" : v === "enabled" ? "disabled" : "auto"
+                  )
+                }
                 className={`rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition ${
-                  thinkMode
+                  thinkingType === "enabled"
                     ? "border-[#0f766e]/30 bg-[#ecfeff] text-[#0f766e] hover:bg-[#cffafe]"
+                    : thinkingType === "disabled"
+                    ? "border-[#991b1b]/20 bg-[#fef2f2] text-[#991b1b] hover:bg-[#fee2e2]"
                     : "border-black/10 bg-white/60 text-black/60 hover:bg-white"
                 }`}
               >
-                思考 {thinkMode ? "ON" : "OFF"}
+                思考 {thinkingType === "auto" ? "AUTO" : thinkingType === "enabled" ? "ON" : "OFF"}
               </button>
 
               <button
@@ -273,7 +300,12 @@ export default function ChatInterface() {
                   />
                   <div className="mt-2 text-[11px] text-black/40">
                     {models.find((m) => m.id === selectedModel)?.name} ·{" "}
-                    {thinkMode ? "深度思考" : "标准模式"} · SSE 流式输出
+                    {thinkingType === "auto"
+                      ? "自动思考"
+                      : thinkingType === "enabled"
+                      ? "强制深度思考"
+                      : "强制关闭思考"}{" "}
+                    · SSE 流式输出
                   </div>
                 </div>
 

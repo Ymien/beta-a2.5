@@ -2,67 +2,87 @@ export const runtime = "edge";
 
 export async function POST(req: Request) {
   try {
-    const { messages, modelId, thinkMode } = await req.json();
+    const { messages, modelId, thinkingType } = await req.json();
 
-    let apiKey = "";
-    let baseURL = "";
-    let actualModel = modelId;
-    let headers: Record<string, string> = { "Content-Type": "application/json" };
-
-    switch (modelId) {
-      case "deepseek":
-        apiKey = process.env.DEEPSEEK_API_KEY || "";
-        baseURL = "https://api.deepseek.com/v1/chat/completions";
-        actualModel = "deepseek-chat";
-        break;
-
-      case "glm4":
-        apiKey = process.env.GLM_API_KEY || "";
-        baseURL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
-        actualModel = "glm-4";
-        break;
-
-      case "doubao1.8":
-        apiKey = process.env.DOUBAO_API_KEY || "";
-        baseURL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
-        actualModel = process.env.DOUBAO_MODEL_1_8 || "ep-xxx";
-        break;
-
-      case "doubao2.0pro":
-        apiKey = process.env.DOUBAO_API_KEY || "";
-        baseURL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
-        actualModel = process.env.DOUBAO_MODEL_2_0_PRO || "ep-yyy";
-        break;
-
-      default:
-        return new Response(JSON.stringify({ error: "Unknown model" }), { status: 400 });
+    const arkApiKey = process.env.ARK_API_KEY || "";
+    if (!arkApiKey) {
+      return new Response(JSON.stringify({ error: "ARK_API_KEY is not configured." }), { status: 500 });
     }
 
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: `API Key for ${modelId} is not configured.` }), { status: 500 });
-    }
-
-    headers =
-      modelId === "glm4"
-        ? { ...headers, Authorization: apiKey }
-        : { ...headers, Authorization: `Bearer ${apiKey}` };
+    const base = (process.env.ARK_BASE_URL || "https://ark.cn-beijing.volces.com/api/v3").replace(/\/$/, "");
 
     const system =
-      thinkMode === true
-        ? "You are NeuraChat, a helpful assistant. Think thoroughly and carefully. Provide a final answer with clear structure and practical steps when applicable."
-        : "You are NeuraChat, a helpful assistant. Provide concise, accurate answers with clear structure.";
+      thinkingType === "enabled"
+        ? "你是 NeuraChat，一个严谨的智能助手。请先充分思考，再给出结构清晰、可执行的答案。"
+        : "你是 NeuraChat，一个高质量的智能助手。请直接给出清晰准确的回答。";
 
-    const response = await fetch(baseURL, {
+    const toChatMessages = () => [
+      { role: "system", content: system },
+      ...(Array.isArray(messages) ? messages : []),
+    ];
+
+    const toResponsesInput = () => [
+      { role: "system", content: [{ type: "input_text", text: system }] },
+      ...(Array.isArray(messages)
+        ? messages.map((m: any) => ({
+            role: m.role === "ai" ? "assistant" : m.role,
+            content: [
+              {
+                type: m.role === "ai" ? "output_text" : "input_text",
+                text: String(m.content ?? ""),
+              },
+            ],
+          }))
+        : []),
+    ];
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${arkApiKey}`,
+    };
+
+    const modelMap: Record<string, { endpoint: "responses" | "chat"; envKey: string; fallback: string }> = {
+      "doubao1.8": { endpoint: "responses", envKey: "ARK_MODEL_DOUBAO_1_8", fallback: "ep-20260409153917-z4nx8" },
+      "doubao2.0pro": { endpoint: "responses", envKey: "ARK_MODEL_DOUBAO_2_0_PRO", fallback: "doubao-seed-2-0-pro-260215" },
+      "doubao1.5pro": { endpoint: "chat", envKey: "ARK_MODEL_DOUBAO_1_5_PRO", fallback: "doubao-1-5-pro-32k-250115" },
+      "deepseek3.2": { endpoint: "responses", envKey: "ARK_MODEL_DEEPSEEK_3_2", fallback: "ep-20260409153659-fbgz8" },
+      "glm4.7": { endpoint: "responses", envKey: "ARK_MODEL_GLM_4_7", fallback: "glm-4-7-251222" },
+    };
+
+    const info = modelMap[String(modelId)];
+    if (!info) {
+      return new Response(JSON.stringify({ error: "Unknown model" }), { status: 400 });
+    }
+
+    const model = (process.env as any)[info.envKey] || info.fallback;
+
+    const url =
+      info.endpoint === "responses" ? `${base}/responses` : `${base}/chat/completions`;
+
+    const thinking =
+      thinkingType === "enabled" || thinkingType === "disabled" || thinkingType === "auto"
+        ? { type: thinkingType }
+        : { type: "auto" };
+
+    const body =
+      info.endpoint === "responses"
+        ? {
+            model,
+            stream: true,
+            input: toResponsesInput(),
+            thinking,
+          }
+        : {
+            model,
+            stream: true,
+            messages: toChatMessages(),
+            thinking,
+          };
+
+    const response = await fetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        model: actualModel,
-        messages: [
-          { role: "system", content: system },
-          ...messages
-        ],
-        stream: true,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {

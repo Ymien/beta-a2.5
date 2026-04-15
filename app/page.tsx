@@ -76,6 +76,11 @@ export default function Home() {
         <section className="grid grid-cols-1 gap-10 rounded-[32px] border border-black/10 bg-white/60 px-6 py-10 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl md:grid-cols-[1.2fr_0.8fr] md:px-10 md:py-14">
           <div className="flex flex-col items-start gap-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-medium text-black/60">
+              <img
+                src="/avatar.svg"
+                alt="Xyu"
+                className="h-5 w-5 rounded-full border border-black/10 bg-white/70"
+              />
               <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
               Xyu · Developer
               <button
