@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [lang, setLang] = useState<"zh" | "en">("zh");
+  const [typedText, setTypedText] = useState("");
 
   const toggleLang = () => {
     setLang(lang === "zh" ? "en" : "zh");
@@ -13,105 +13,189 @@ export default function Home() {
 
   const content = {
     zh: {
-      titlePrefix: "Welcome to ",
-      titleHighlight: "网络小游戏",
-      introTitle: "小游戏介绍",
-      cyberMatchTitle: "🎮 Cyber Match (记忆翻牌)",
-      cyberMatchDesc: "这是一款赛博朋克风格的记忆配对小游戏。网格中隐藏着成对的神秘符号。\n• 玩法：点击任意卡片即可翻开。\n• 规则：如果连续翻开的两张卡片图案相同，它们将保持翻开状态并闪烁霓虹光芒；如果图案不同，卡片会在短暂延迟后自动翻回背面。\n• 目标：运用你的短期记忆，找出所有匹配的卡片。全场卡片匹配成功即可完成系统破解！",
-      neonTetrisTitle: "🎮 Neon Tetris (霓虹俄罗斯方块)",
-      neonTetrisDesc: "这是一款带有动态霓虹发光特效的经典俄罗斯方块游戏，结合了毛玻璃面板与赛博朋克光影。\n• 操作：使用 [←][→] 左右移动方块，使用 [↑] 顺时针旋转方块，使用 [↓] 加速方块下落，按下 [空格键] 让方块瞬间降落到底部。\n• 移动端：界面下方会自动生成虚拟触控按键，方便在手机上畅玩。\n• 目标：将下落的方块紧密拼接，填满一整行即可消除并获得得分。连续消除更多行可获得分数加成，随着分数提升，方块下落速度也会越来越快！",
-      cyberMatchBtn: "CYBER MATCH",
-      neonTetrisBtn: "NEON TETRIS",
-      langToggle: "English"
+      langToggle: "English",
+      greeting: "Hello, World! 欢迎来到我的赛博朋克极客主页。",
+      aboutMeTitle: "关于我",
+      aboutMeDesc: "我是一名热衷于构建具有极致交互和视觉体验的现代 Web 开发者。在这里，你可以体验我使用 Next.js 和 Tailwind CSS 构建的创意小游戏和 AI 交互原型。所有的项目都经过精心设计，追求卓越的性能与极致的赛博朋克美学。",
+      projectsTitle: "项目橱窗",
+      cyberMatchTitle: "🎮 Cyber Match",
+      cyberMatchDesc: "这是一款赛博朋克风格的记忆配对小游戏。网格中隐藏着成对的神秘符号。\n• 玩法：点击翻开卡片。如果连续两张图案相同则匹配成功并闪烁霓虹光芒。\n• 目标：找出所有匹配的卡片完成系统破解！",
+      neonTetrisTitle: "🎮 Neon Tetris",
+      neonTetrisDesc: "带有动态霓虹发光特效的经典俄罗斯方块游戏，结合了毛玻璃面板与赛博朋克光影。\n• 操作：使用 [←][→] 左右移动，[↑] 旋转，[↓] 加速下落，[空格键] 瞬间降落。\n• 目标：紧密拼接消除满行以获取更高分数！",
+      synapseAiTitle: "🤖 Synapse AI",
+      synapseAiDesc: "纯净版前端大模型聊天交互界面体验。\n• 特性：拥有类似终端指令风格的 UI 设计，展示了沉浸式的 AI 思考动画和流畅的聊天信息流呈现。\n• 目标：体验下一代 AI 交互的前端视觉范式。",
+      btnPlay: "TRY IT OUT",
     },
     en: {
-      titlePrefix: "Welcome to ",
-      titleHighlight: "Web Mini-Games",
-      introTitle: "Game Instructions",
-      cyberMatchTitle: "🎮 Cyber Match (Memory Card)",
-      cyberMatchDesc: "A cyberpunk-themed memory card game. A grid hides pairs of mysterious neon symbols.\n• How to play: Click any card to flip it over.\n• Rules: If two consecutive flipped cards have matching patterns, they will stay open with a neon glow; otherwise, they flip back automatically after a short delay.\n• Goal: Use your short-term memory to find all matching pairs. Match all cards to hack the system!",
+      langToggle: "中文",
+      greeting: "Hello, World! Welcome to my Cyberpunk Geek Portfolio.",
+      aboutMeTitle: "About Me",
+      aboutMeDesc: "I am a modern Web Developer passionate about building extreme interactive and visual experiences. Here, you can experience creative mini-games and AI interaction prototypes built with Next.js and Tailwind CSS. All projects are meticulously designed for outstanding performance and extreme cyberpunk aesthetics.",
+      projectsTitle: "Projects Showcase",
+      cyberMatchTitle: "🎮 Cyber Match",
+      cyberMatchDesc: "A cyberpunk-themed memory card game hiding pairs of mysterious neon symbols.\n• How to play: Click to flip cards. Matching consecutive cards will trigger a neon glow.\n• Goal: Find all matching pairs to hack the system!",
       neonTetrisTitle: "🎮 Neon Tetris",
-      neonTetrisDesc: "A classic Tetris game featuring dynamic neon glow effects, glassmorphism panels, and a cyberpunk atmosphere.\n• Controls: Use [←][→] arrow keys to move blocks left or right, [↑] to rotate blocks clockwise, [↓] to accelerate the drop, and press the [Spacebar] to hard drop blocks to the bottom.\n• Mobile: Virtual touch controls will automatically appear at the bottom of the screen for mobile gameplay.\n• Goal: Arrange the falling blocks tightly to fill entire rows. Filled rows will be cleared to score points. Clearing multiple rows at once grants bonus points. As your score increases, the blocks will fall faster!",
-      cyberMatchBtn: "CYBER MATCH",
-      neonTetrisBtn: "NEON TETRIS",
-      langToggle: "中文"
+      neonTetrisDesc: "Classic Tetris featuring dynamic neon glow effects, glassmorphism panels, and a cyberpunk atmosphere.\n• Controls: Use arrow keys to move and rotate, down arrow to accelerate, and spacebar to hard drop.\n• Goal: Arrange blocks to fill rows and score points!",
+      synapseAiTitle: "🤖 Synapse AI",
+      synapseAiDesc: "A pure frontend LLM chat interface prototype.\n• Features: Terminal-style UI design, immersive AI thinking animations, and fluid chat message streams.\n• Goal: Experience the next-generation frontend visual paradigm for AI interactions.",
+      btnPlay: "TRY IT OUT",
     }
   };
 
   const t = content[lang];
 
+  // Typewriter effect for the greeting
+  useEffect(() => {
+    let currentText = "";
+    let currentIndex = 0;
+    const fullText = t.greeting;
+    
+    // Reset
+    setTypedText("");
+    
+    const interval = setInterval(() => {
+      if (currentIndex < fullText.length) {
+        currentText += fullText[currentIndex];
+        setTypedText(currentText);
+        currentIndex++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 50); // typing speed
+
+    return () => clearInterval(interval);
+  }, [lang]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black min-h-screen relative">
-      {/* 语言切换按钮 */}
-      <div className="absolute top-6 right-6 z-50">
+    <div className="min-h-screen bg-black text-cyan-50 font-mono relative overflow-hidden selection:bg-fuchsia-500 selection:text-white">
+      {/* Ambient Background Effects */}
+      <div className="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] bg-fuchsia-600/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="fixed bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cyan-600/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
+
+      {/* Header & Language Toggle */}
+      <header className="relative z-50 flex justify-end p-6 max-w-6xl mx-auto w-full">
         <button 
           onClick={toggleLang}
-          className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800/80 hover:bg-zinc-700 dark:bg-white/10 dark:hover:bg-white/20 text-white border border-zinc-700 dark:border-white/20 rounded-full font-bold transition-all shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:shadow-[0_0_20px_rgba(192,38,211,0.4)] backdrop-blur-md cursor-pointer"
+          className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900/80 hover:bg-zinc-800 text-white border border-zinc-700/50 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(34,211,238,0.1)] hover:shadow-[0_0_20px_rgba(192,38,211,0.3)] backdrop-blur-md cursor-pointer uppercase tracking-widest"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
           </svg>
           {t.langToggle}
         </button>
-      </div>
+      </header>
 
-      <main className="flex flex-1 w-full max-w-4xl flex-col items-center justify-center py-20 px-8 bg-white dark:bg-black">
-        <div className="flex flex-col items-center gap-10 w-full text-center">
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight tracking-tight text-black dark:text-white drop-shadow-md">
-            {t.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">{t.titleHighlight}</span>
+      <main className="relative z-10 flex flex-col items-center w-full max-w-6xl mx-auto px-6 pb-24">
+        
+        {/* Hero Section */}
+        <section className="w-full py-16 md:py-24 flex flex-col items-start border-b border-white/10 mb-16">
+          <div className="inline-block px-3 py-1 mb-6 border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs tracking-widest uppercase rounded-full shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+            v0.50.0 // ONLINE
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-fuchsia-500 drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+              &lt;SYSTEM_INIT /&gt;
+            </span>
           </h1>
+          <div className="h-[80px] md:h-[60px] w-full text-xl md:text-2xl text-zinc-400 leading-relaxed font-light">
+            <span className="text-cyan-400 mr-2">{">"}</span>
+            {typedText}
+            <span className="inline-block w-3 h-6 ml-1 bg-cyan-400 animate-pulse"></span>
+          </div>
           
-          {/* 详细游戏介绍区块 */}
-          <div className="w-full bg-zinc-100 dark:bg-zinc-900/50 p-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm text-left">
-            <h2 className="text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">
-              {t.introTitle}
+          <div className="mt-12 max-w-2xl bg-white/5 border border-white/10 p-6 md:p-8 rounded-2xl backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.4)] hover:border-white/20 transition-colors">
+            <h2 className="text-lg uppercase tracking-widest text-fuchsia-400 mb-4 font-bold drop-shadow-[0_0_8px_rgba(192,38,211,0.5)]">
+              {t.aboutMeTitle}
             </h2>
+            <p className="text-zinc-300 leading-loose">
+              {t.aboutMeDesc}
+            </p>
+            <div className="mt-6 flex gap-4">
+              <a href="https://github.com/Ymien" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-cyan-400 transition-colors flex items-center gap-2">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"></path></svg>
+                GitHub
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* Projects Gallery */}
+        <section className="w-full">
+          <div className="flex items-center gap-4 mb-10">
+            <h2 className="text-3xl font-bold tracking-widest text-white uppercase">
+              {t.projectsTitle}
+            </h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-cyan-500/50 to-transparent"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-200">{t.cyberMatchTitle}</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
-                  {t.cyberMatchDesc}
+            {/* Project 1: Synapse AI */}
+            <div className="group relative bg-zinc-900/40 border border-fuchsia-500/20 rounded-2xl p-6 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-fuchsia-500/60 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(192,38,211,0.3)]">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-fuchsia-500 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-white group-hover:text-fuchsia-400 transition-colors">{t.synapseAiTitle}</h3>
+                  <span className="px-2 py-1 text-[10px] uppercase tracking-widest bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20 rounded">LLM UI</span>
+                </div>
+                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line mb-8">
+                  {t.synapseAiDesc}
                 </p>
               </div>
+              <Link 
+                href="/chat"
+                className="w-full py-3 px-4 bg-white/5 border border-white/10 hover:bg-fuchsia-500 hover:border-fuchsia-500 text-white text-sm font-bold tracking-widest uppercase rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
+              >
+                {t.btnPlay}
+                <svg className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </Link>
+            </div>
 
-              <div className="h-px w-full bg-zinc-200 dark:bg-zinc-800"></div>
-
-              <div className="flex flex-col gap-2">
-                <h3 className="text-xl font-bold text-zinc-800 dark:text-zinc-200">{t.neonTetrisTitle}</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
+            {/* Project 2: Neon Tetris */}
+            <div className="group relative bg-zinc-900/40 border border-cyan-500/20 rounded-2xl p-6 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-cyan-500/60 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(34,211,238,0.3)]">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-400 to-blue-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{t.neonTetrisTitle}</h3>
+                  <span className="px-2 py-1 text-[10px] uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded">GAME</span>
+                </div>
+                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line mb-8">
                   {t.neonTetrisDesc}
                 </p>
               </div>
+              <Link 
+                href="/tetris"
+                className="w-full py-3 px-4 bg-white/5 border border-white/10 hover:bg-cyan-500 hover:border-cyan-500 text-black text-sm font-bold tracking-widest uppercase rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
+              >
+                {t.btnPlay}
+                <svg className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </Link>
             </div>
-          </div>
 
-          <div className="flex flex-col sm:flex-row gap-6 w-full justify-center mt-4">
-            {/* Cyber Match Game Link */}
-            <Link
-              href="/game"
-              className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 font-mono rounded-xl hover:from-purple-500 hover:to-pink-500 shadow-[0_0_20px_rgba(192,38,211,0.4)] hover:shadow-[0_0_30px_rgba(192,38,211,0.6)] hover:-translate-y-1 overflow-hidden"
-            >
-              <span className="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
-              <span className="relative flex items-center gap-2">
-                <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                {t.cyberMatchBtn}
-              </span>
-            </Link>
+            {/* Project 3: Cyber Match */}
+            <div className="group relative bg-zinc-900/40 border border-purple-500/20 rounded-2xl p-6 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-purple-500/60 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(168,85,247,0.3)] lg:col-span-1 md:col-span-2 lg:col-start-auto">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{t.cyberMatchTitle}</h3>
+                  <span className="px-2 py-1 text-[10px] uppercase tracking-widest bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded">GAME</span>
+                </div>
+                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line mb-8">
+                  {t.cyberMatchDesc}
+                </p>
+              </div>
+              <Link 
+                href="/game"
+                className="w-full py-3 px-4 bg-white/5 border border-white/10 hover:bg-purple-500 hover:border-purple-500 text-white text-sm font-bold tracking-widest uppercase rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
+              >
+                {t.btnPlay}
+                <svg className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </Link>
+            </div>
 
-            {/* Neon Tetris Game Link */}
-            <Link
-              href="/tetris"
-              className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-gradient-to-r from-cyan-500 to-blue-600 font-mono rounded-xl hover:from-cyan-400 hover:to-blue-500 shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] hover:-translate-y-1 overflow-hidden"
-            >
-              <span className="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
-              <span className="relative flex items-center gap-2">
-                <svg className="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                {t.neonTetrisBtn}
-              </span>
-            </Link>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );

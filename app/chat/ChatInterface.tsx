@@ -94,10 +94,10 @@ export default function ChatInterface() {
             className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div 
-              className={`max-w-[85%] md:max-w-[75%] p-4 rounded-2xl backdrop-blur-md ${
+              className={`max-w-[85%] md:max-w-[75%] p-4 backdrop-blur-md ${
                 msg.role === "user" 
-                  ? "bg-cyan-900/40 border border-cyan-500/50 text-white rounded-tr-none shadow-[0_0_15px_rgba(34,211,238,0.2)]" 
-                  : "bg-fuchsia-900/20 border border-fuchsia-500/30 text-cyan-50 rounded-tl-none shadow-[0_0_15px_rgba(192,38,211,0.1)]"
+                  ? "bg-cyan-900/40 border border-cyan-500/50 text-white rounded-2xl rounded-tr-none shadow-[0_0_15px_rgba(34,211,238,0.2)]" 
+                  : "bg-fuchsia-900/20 border border-fuchsia-500/30 text-cyan-50 rounded-2xl rounded-tl-none shadow-[0_0_15px_rgba(192,38,211,0.1)]"
               }`}
             >
               <div className="text-xs opacity-50 mb-1 tracking-widest uppercase">
