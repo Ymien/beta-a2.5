@@ -4,11 +4,6 @@ export async function POST(req: Request) {
   try {
     const { messages, modelId, thinkingType } = await req.json();
 
-    const arkApiKey = process.env.ARK_API_KEY || "";
-    if (!arkApiKey) {
-      return new Response(JSON.stringify({ error: "ARK_API_KEY is not configured." }), { status: 500 });
-    }
-
     const base = (process.env.ARK_BASE_URL || "https://ark.cn-beijing.volces.com/api/v3").replace(/\/$/, "");
 
     const system =
@@ -36,17 +31,45 @@ export async function POST(req: Request) {
         : []),
     ];
 
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${arkApiKey}`,
-    };
-
-    const modelMap: Record<string, { endpoint: "responses" | "chat"; envKey: string; fallback: string }> = {
-      "doubao1.8": { endpoint: "responses", envKey: "ARK_MODEL_DOUBAO_1_8", fallback: "ep-20260409153917-z4nx8" },
-      "doubao2.0pro": { endpoint: "responses", envKey: "ARK_MODEL_DOUBAO_2_0_PRO", fallback: "doubao-seed-2-0-pro-260215" },
-      "doubao1.5pro": { endpoint: "chat", envKey: "ARK_MODEL_DOUBAO_1_5_PRO", fallback: "doubao-1-5-pro-32k-250115" },
-      "deepseek3.2": { endpoint: "responses", envKey: "ARK_MODEL_DEEPSEEK_3_2", fallback: "ep-20260409153659-fbgz8" },
-      "glm4.7": { endpoint: "responses", envKey: "ARK_MODEL_GLM_4_7", fallback: "glm-4-7-251222" },
+    const modelMap: Record<
+      string,
+      {
+        endpoint: "responses" | "chat";
+        modelEnvKey: string;
+        modelFallback: string;
+        apiKeyEnvKey: string;
+      }
+    > = {
+      "doubao1.8": {
+        endpoint: "responses",
+        modelEnvKey: "ARK_MODEL_DOUBAO_1_8",
+        modelFallback: "ep-20260409153917-z4nx8",
+        apiKeyEnvKey: "ARK_API_KEY_DOUBAO_1_8",
+      },
+      "doubao2.0pro": {
+        endpoint: "responses",
+        modelEnvKey: "ARK_MODEL_DOUBAO_2_0_PRO",
+        modelFallback: "doubao-seed-2-0-pro-260215",
+        apiKeyEnvKey: "ARK_API_KEY_DOUBAO_2_0_PRO",
+      },
+      "doubao1.5pro": {
+        endpoint: "chat",
+        modelEnvKey: "ARK_MODEL_DOUBAO_1_5_PRO",
+        modelFallback: "doubao-1-5-pro-32k-250115",
+        apiKeyEnvKey: "ARK_API_KEY_DOUBAO_1_5_PRO",
+      },
+      "deepseek3.2": {
+        endpoint: "responses",
+        modelEnvKey: "ARK_MODEL_DEEPSEEK_3_2",
+        modelFallback: "ep-20260409153659-fbgz8",
+        apiKeyEnvKey: "ARK_API_KEY_DEEPSEEK_3_2",
+      },
+      "glm4.7": {
+        endpoint: "responses",
+        modelEnvKey: "ARK_MODEL_GLM_4_7",
+        modelFallback: "glm-4-7-251222",
+        apiKeyEnvKey: "ARK_API_KEY_GLM_4_7",
+      },
     };
 
     const info = modelMap[String(modelId)];
@@ -54,7 +77,17 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: "Unknown model" }), { status: 400 });
     }
 
-    const model = (process.env as any)[info.envKey] || info.fallback;
+    const apiKey = (process.env as any)[info.apiKeyEnvKey] || "";
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: `${info.apiKeyEnvKey} is not configured.` }), { status: 500 });
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    };
+
+    const model = (process.env as any)[info.modelEnvKey] || info.modelFallback;
 
     const url =
       info.endpoint === "responses" ? `${base}/responses` : `${base}/chat/completions`;
