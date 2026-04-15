@@ -230,8 +230,11 @@ export default function Tetris() {
 
       {/* Header */}
       <div className="z-10 flex w-full max-w-4xl justify-between items-center px-6 mb-8">
-        <Link href="/" className="text-fuchsia-400 hover:text-fuchsia-300 tracking-widest text-sm uppercase transition-colors drop-shadow-[0_0_8px_rgba(192,38,211,0.8)]">
-          &lt; 返回主站
+        <Link href="/" className="text-fuchsia-400 hover:text-fuchsia-300 tracking-widest text-sm uppercase transition-colors drop-shadow-[0_0_8px_rgba(192,38,211,0.8)] flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          返回主站
         </Link>
         <h1 className="text-3xl md:text-5xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)] animate-pulse">
           NEON TETRIS

@@ -92,8 +92,11 @@ export default function Game() {
 
       {/* Header */}
       <div className="z-10 flex flex-col items-center mb-8 w-full max-w-md px-4">
-        <Link href="/" className="self-start text-purple-400 hover:text-purple-300 mb-4 tracking-widest text-sm uppercase transition-colors">
-          &lt; 返回首页
+        <Link href="/" className="self-start text-fuchsia-400 hover:text-fuchsia-300 mb-4 tracking-widest text-sm uppercase transition-colors flex items-center gap-2 drop-shadow-[0_0_8px_rgba(192,38,211,0.8)]">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          返回主站
         </Link>
         <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">
           CYBER MATCH
