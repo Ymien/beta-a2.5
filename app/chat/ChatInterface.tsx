@@ -124,6 +124,21 @@ export default function ChatInterface() {
     abortControllerRef.current = new AbortController();
 
     try {
+      const FINAL_MARKER = "FINAL:";
+      const sanitizeFallback = (text: string) => {
+        const t = String(text || "");
+        const idx = t.indexOf(FINAL_MARKER);
+        if (idx >= 0) return t.slice(idx + FINAL_MARKER.length).trim();
+        const lines = t.split(/\r?\n/).map((l) => l.trim());
+        const filtered = lines.filter((l) => {
+          if (!l) return false;
+          if (l.includes("用户现在") || l.includes("首先") || l.includes("等下") || l.includes("对吧")) return false;
+          if (l.includes("整理一下") || l.includes("直接输出") || l.includes("这样就全了")) return false;
+          return true;
+        });
+        return filtered.join("\n").trim();
+      };
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -151,7 +166,8 @@ export default function ChatInterface() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
-      let aiText = "";
+      let rawText = "";
+      let finalIdx = -1;
       let localThinkingStart: number | undefined;
       let localAnswerStart: number | undefined;
 
@@ -212,39 +228,53 @@ export default function ChatInterface() {
             }
 
             if (typeof deltaText === "string" && deltaText.length > 0) {
-              if (!localAnswerStart) localAnswerStart = Date.now();
-              aiText += deltaText;
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === aiMessageId ? { ...msg, content: aiText } : msg
-                )
-              );
+              rawText += deltaText;
+              if (finalIdx < 0) finalIdx = rawText.indexOf(FINAL_MARKER);
 
-              if (localAnswerStart) {
+              if (finalIdx >= 0) {
+                if (!localAnswerStart) localAnswerStart = Date.now();
+                const answer = rawText.slice(finalIdx + FINAL_MARKER.length).trimStart();
                 setMessages((prev) =>
                   prev.map((msg) =>
-                    msg.id === aiMessageId && !msg.answerStartMs
-                      ? { ...msg, answerStartMs: localAnswerStart }
-                      : msg
+                    msg.id === aiMessageId ? { ...msg, content: answer } : msg
                   )
                 );
-              }
 
-              if (localAnswerStart) {
-                const ms = localThinkingStart
-                  ? localAnswerStart - localThinkingStart
-                  : localAnswerStart - requestStartMs;
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === aiMessageId && msg.thinkingMs == null
-                      ? { ...msg, thinkingMs: ms }
-                      : msg
-                  )
-                );
+                if (localAnswerStart) {
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === aiMessageId && !msg.answerStartMs
+                        ? { ...msg, answerStartMs: localAnswerStart }
+                        : msg
+                    )
+                  );
+                }
+
+                if (localAnswerStart) {
+                  const ms = localThinkingStart
+                    ? localAnswerStart - localThinkingStart
+                    : localAnswerStart - requestStartMs;
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === aiMessageId && msg.thinkingMs == null
+                        ? { ...msg, thinkingMs: ms }
+                        : msg
+                    )
+                  );
+                }
               }
             }
           } catch (e) {}
         }
+      }
+
+      if (finalIdx < 0) {
+        const fallback = sanitizeFallback(rawText);
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMessageId ? { ...msg, content: fallback || msg.content } : msg
+          )
+        );
       }
 
       if (localThinkingStart && !localAnswerStart) {

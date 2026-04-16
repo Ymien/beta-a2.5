@@ -16,8 +16,8 @@ export async function POST(req: Request) {
 
     const system =
       thinkingType === "enabled"
-        ? "你是 Xyu 的智能助手。请在内部充分思考，但不要在回答中展示思考过程/推理步骤/自我反思，只输出最终答案。"
-        : "你是 Xyu 的智能助手。请直接输出最终答案，不要展示思考过程/推理步骤/自我反思。";
+        ? "你是 Xyu 的智能助手。你可以在内部充分思考，但不要在回答中展示思考过程/推理步骤/自我反思。最终输出必须以“FINAL:”开头，且FINAL之前禁止输出任何文字；FINAL后直接给出最终答案。"
+        : "你是 Xyu 的智能助手。请直接输出最终答案，不要展示思考过程/推理步骤/自我反思。最终输出必须以“FINAL:”开头，且FINAL之前禁止输出任何文字；FINAL后直接给出最终答案。";
 
     const toChatMessages = () => [
       { role: "system", content: system },
