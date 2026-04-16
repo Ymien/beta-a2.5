@@ -87,14 +87,17 @@ Combine this with dark themes (\`bg-[#0a0a0a]\`) and you've got a recipe for a s
 }
 
 export function getPostData(slug: string): Post | undefined {
-  const fullPath = path.join(postsDirectory, `${slug}.md`);
+  const safeSlug = decodeURIComponent(String(slug || ""))
+    .replace(/\/+$/, "")
+    .replace(/\.md$/, "");
+  const fullPath = path.join(postsDirectory, `${safeSlug}.md`);
   if (!fs.existsSync(fullPath)) return undefined;
 
   const fileContents = fs.readFileSync(fullPath, "utf8");
   const matterResult = matter(fileContents);
 
   return {
-    slug,
+    slug: safeSlug,
     title: matterResult.data.title,
     date: matterResult.data.date,
     excerpt: matterResult.data.excerpt,
