@@ -392,70 +392,82 @@ export default function ChatInterface() {
                   {messages.map((msg) => {
                     const isUser = msg.role === "user";
                     const isSystem = msg.role === "system";
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-                      >
-                        {isUser ? (
+                    const hasThinking =
+                      thinkingType !== "disabled" || (msg.thinking || "").length > 0;
+
+                    if (isUser) {
+                      return (
+                        <div key={msg.id} className="flex justify-end">
                           <div className="max-w-[92%] rounded-3xl border border-black/10 bg-[#15130f] px-4 py-3 text-sm leading-relaxed text-[#fbf7ef] md:max-w-[80%]">
                             <div className="whitespace-pre-wrap">{msg.content}</div>
                           </div>
-                        ) : isSystem ? (
+                        </div>
+                      );
+                    }
+
+                    if (isSystem) {
+                      return (
+                        <div key={msg.id} className="flex justify-start">
                           <div className="max-w-[92%] rounded-3xl border border-red-500/20 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-700 md:max-w-[80%]">
                             <div className="whitespace-pre-wrap">{msg.content}</div>
                           </div>
-                        ) : (
-                          <div className="max-w-[92%] md:max-w-[80%]">
-                            {(thinkingType !== "disabled" || (msg.thinking || "").length > 0) && (
-                              <div className="mb-4 rounded-3xl border border-black/10 bg-[#f4efe6] px-4 py-2">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setMessages((prev) =>
-                                      prev.map((m) =>
-                                        m.id === msg.id ? { ...m, thinkingOpen: !m.thinkingOpen } : m
-                                      )
-                                    )
-                                  }
-                                  className="flex w-full items-center justify-between text-xs font-medium text-black/55"
-                                >
-                                  <span className="flex items-center gap-2">
-                                    <span>{ui.thinkingPanel}</span>
-                                    <span className="text-black/35 font-mono">
-                                      {typeof msg.thinkingMs === "number"
-                                        ? `${Math.max(1, Math.round(msg.thinkingMs / 1000))}${lang === "zh" ? "秒" : "s"}`
-                                        : ""}
-                                    </span>
-                                  </span>
-                                  <span className="text-black/35">
-                                    {msg.thinkingOpen ? ui.hideThinking : ui.showThinking}
-                                  </span>
-                                </button>
-                                {msg.thinkingOpen && (
-                                  <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
-                                    {(msg.thinking || "").trim().length > 0
-                                      ? msg.thinking
-                                      : lang === "zh"
-                                      ? "模型未返回思考内容"
-                                      : "No reasoning content returned by the model."}
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                        </div>
+                      );
+                    }
 
-                            <div className="rounded-3xl border border-black/10 bg-white/85 px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
-                              <div className="mb-2 text-[11px] font-medium tracking-widest text-black/40">
-                                {lang === "zh" ? "输出" : "ANSWER"}
-                              </div>
-                              <div className="prose prose-sm max-w-none prose-p:my-2 prose-pre:my-3 prose-pre:rounded-2xl prose-pre:border prose-pre:border-black/10 prose-pre:bg-black/95 prose-pre:text-white">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {msg.content || "..."}
-                                </ReactMarkdown>
-                              </div>
+                    return (
+                      <div key={msg.id} className="flex flex-col gap-2">
+                        {hasThinking && (
+                          <div className="flex justify-start">
+                            <div className="max-w-[92%] md:max-w-[80%] rounded-3xl border border-black/10 bg-[#f4efe6] px-4 py-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setMessages((prev) =>
+                                    prev.map((m) =>
+                                      m.id === msg.id ? { ...m, thinkingOpen: !m.thinkingOpen } : m
+                                    )
+                                  )
+                                }
+                                className="flex w-full items-center justify-between text-xs font-medium text-black/55"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <span>{ui.thinkingPanel}</span>
+                                  <span className="text-black/35 font-mono">
+                                    {typeof msg.thinkingMs === "number"
+                                      ? `${Math.max(1, Math.round(msg.thinkingMs / 1000))}${lang === "zh" ? "秒" : "s"}`
+                                      : ""}
+                                  </span>
+                                </span>
+                                <span className="text-black/35">
+                                  {msg.thinkingOpen ? ui.hideThinking : ui.showThinking}
+                                </span>
+                              </button>
+                              {msg.thinkingOpen && (
+                                <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
+                                  {(msg.thinking || "").trim().length > 0
+                                    ? msg.thinking
+                                    : lang === "zh"
+                                    ? "模型未返回思考内容"
+                                    : "No reasoning content returned by the model."}
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
+
+                        <div className="flex justify-start">
+                          <div className="max-w-[92%] md:max-w-[80%] rounded-3xl border border-black/10 bg-white/85 px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+                            <div className="mb-2 text-[11px] font-medium tracking-widest text-black/40">
+                              {lang === "zh" ? "输出" : "ANSWER"}
+                            </div>
+                            <div className="prose prose-sm max-w-none prose-p:my-2 prose-pre:my-3 prose-pre:rounded-2xl prose-pre:border prose-pre:border-black/10 prose-pre:bg-black/95 prose-pre:text-white">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {msg.content || "..."}
+                              </ReactMarkdown>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
