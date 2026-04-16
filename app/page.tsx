@@ -23,20 +23,22 @@ export default function Home() {
     () =>
       lang === "zh"
         ? {
-            heroTitle: "这里是 Xyu 的小站。",
+            heroTitle: "自由.",
+            heroSubtitle: "随想 · 随心",
             heroDesc:
-              "开发者。写一些随笔，做一些实验，留下一点进度。你可以从右上角的“导航”进入各个入口：AI 聊天、PopupMorph、小玩具和文章。",
-            sectionNotes: "随笔 / Notes",
+              "一块随手写下的地方：想到什么写什么，想做什么就做什么。右上角目录是入口。",
+            sectionNotes: "随想",
             readMore: "打开阅读 →",
-            footerCopyright: "© 2026 Xyu.",
+            footerCopyright: "© 2026 Xyu · 自由.",
           }
         : {
-            heroTitle: "Xyu's corner on the internet.",
+            heroTitle: "Free.",
+            heroSubtitle: "Thoughts · By heart",
             heroDesc:
-              "Developer. I write notes, ship small experiments, and keep a lightweight devlog. Use the top-right menu to jump into AI Chat, PopupMorph, games, and posts.",
-            sectionNotes: "Notes",
+              "A place for wandering thoughts and impulsive making. Use the menu in the top-right to jump around.",
+            sectionNotes: "Thoughts",
             readMore: "Read →",
-            footerCopyright: "© 2026 Xyu.",
+            footerCopyright: "© 2026 Xyu · Free.",
           },
     [lang]
   );
@@ -58,11 +60,14 @@ export default function Home() {
                 className="h-5 w-5 rounded-full border border-black/10 bg-white/70"
               />
               <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
-              Xyu · Developer
+              Xyu · {lang === "zh" ? "开发者" : "Developer"}
             </div>
-            <h1 className="text-4xl font-extrabold leading-[1.02] tracking-tight text-[#15130f] md:text-6xl">
+            <h1 className="text-5xl font-extrabold leading-[0.98] tracking-tight text-[#15130f] md:text-7xl">
               {t.heroTitle}
             </h1>
+            <div className="text-sm font-medium tracking-widest text-black/40">
+              {t.heroSubtitle}
+            </div>
             <p className="max-w-xl text-base leading-relaxed text-black/60 md:text-lg">
               {t.heroDesc}
             </p>

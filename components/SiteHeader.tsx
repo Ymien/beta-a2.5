@@ -20,46 +20,49 @@ export default function SiteHeader(props: { active?: string }) {
     () =>
       lang === "zh"
         ? [
-            { href: "/", label: "首页", desc: "写作与实验的入口" },
-            { href: "/blog/react-server-components", label: "随笔", desc: "文章、记录与想法" },
-            { href: "/chat", label: "AI 聊天", desc: "多模型 · 思考模式" },
-            { href: "/popup", label: "PopupMorph", desc: "弹窗形状动画生成器" },
-            { href: "/tetris", label: "Neon Tetris", desc: "霓虹俄罗斯方块" },
-            { href: "/game", label: "Cyber Match", desc: "记忆配对小游戏" },
+            { href: "/", label: "自由.", desc: "入口" },
+            { href: "/blog/react-server-components", label: "随想", desc: "文章与片段" },
+            { href: "/chat", label: "对话", desc: "AI · 多模型" },
+            { href: "/popup", label: "游乐场 · PopupMorph", desc: "弹窗形状动画" },
+            { href: "/tetris", label: "游乐场 · Tetris", desc: "霓虹方块" },
+            { href: "/game", label: "游乐场 · Match", desc: "记忆配对" },
           ]
         : [
-            { href: "/", label: "Home", desc: "Start here" },
-            { href: "/blog/react-server-components", label: "Notes", desc: "Posts and small essays" },
-            { href: "/chat", label: "AI Chat", desc: "Multi-model · Thinking" },
-            { href: "/popup", label: "PopupMorph", desc: "Popup shape animator" },
-            { href: "/tetris", label: "Neon Tetris", desc: "Neon tetris" },
-            { href: "/game", label: "Cyber Match", desc: "Memory match game" },
+            { href: "/", label: "Free.", desc: "Start here" },
+            { href: "/blog/react-server-components", label: "Thoughts", desc: "Notes & essays" },
+            { href: "/chat", label: "Dialog", desc: "AI · Multi-model" },
+            { href: "/popup", label: "Playground · PopupMorph", desc: "Popup shape animator" },
+            { href: "/tetris", label: "Playground · Tetris", desc: "Neon blocks" },
+            { href: "/game", label: "Playground · Match", desc: "Memory game" },
           ],
     [lang]
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-[#fbf7ef]/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-[#fbf7ef]/85 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-[#15130f]">
-          <img
-            src="/avatar.svg"
-            alt="Xyu"
-            className="h-7 w-7 rounded-full border border-black/10 bg-white/70"
-          />
-          <span className="text-base tracking-tight md:text-lg">Xyu</span>
+        <Link href="/" className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full border border-black/10 bg-white/70 p-1">
+            <img src="/avatar.svg" alt="Xyu" className="h-full w-full rounded-full" />
+          </div>
+          <div className="flex flex-col leading-none">
+            <span className="text-[15px] font-semibold tracking-tight text-[#15130f]">
+              {lang === "zh" ? "自由." : "Free."}
+            </span>
+            <span className="text-[11px] text-black/40">Xyu</span>
+          </div>
         </Link>
 
         <div className="relative flex items-center gap-2">
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-3 py-2 text-sm font-medium text-black/70 shadow-sm transition hover:bg-white"
-            aria-label="打开导航"
+            className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3 py-2 text-sm font-medium text-black/70 shadow-sm transition hover:bg-white"
+            aria-label={lang === "zh" ? "打开目录" : "Open menu"}
             aria-expanded={open}
           >
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            <span className="hidden sm:inline">导航</span>
+            <span className="hidden sm:inline">{lang === "zh" ? "目录" : "Menu"}</span>
           </button>
 
           <div
@@ -70,7 +73,7 @@ export default function SiteHeader(props: { active?: string }) {
           >
             <div className="px-3 pb-2 pt-1 flex items-center justify-between">
               <div className="text-[11px] font-medium tracking-widest text-black/40">
-                PORTALS
+                {lang === "zh" ? "入口" : "PORTALS"}
               </div>
               <button
                 type="button"
