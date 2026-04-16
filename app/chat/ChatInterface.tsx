@@ -124,19 +124,24 @@ export default function ChatInterface() {
     abortControllerRef.current = new AbortController();
 
     try {
-      const FINAL_MARKER = "FINAL:";
+      const FINAL_RE = /FINAL\s*[:：]/i;
       const sanitizeFallback = (text: string) => {
         const t = String(text || "");
-        const idx = t.indexOf(FINAL_MARKER);
-        if (idx >= 0) return t.slice(idx + FINAL_MARKER.length).trim();
+        const m = FINAL_RE.exec(t);
+        if (m && typeof m.index === "number") return t.slice(m.index + m[0].length).trim();
         const lines = t.split(/\r?\n/).map((l) => l.trim());
         const filtered = lines.filter((l) => {
           if (!l) return false;
           if (l.includes("用户现在") || l.includes("首先") || l.includes("等下") || l.includes("对吧")) return false;
           if (l.includes("整理一下") || l.includes("直接输出") || l.includes("这样就全了")) return false;
+          if (FINAL_RE.test(l)) return false;
           return true;
         });
-        return filtered.join("\n").trim();
+        const merged = filtered.join("\n").trim();
+        if (!merged) return "";
+        const blocks = merged.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+        const last = blocks.length > 0 ? blocks[blocks.length - 1] : merged;
+        return last.trim();
       };
 
       const response = await fetch("/api/chat", {
@@ -168,6 +173,7 @@ export default function ChatInterface() {
       const decoder = new TextDecoder("utf-8");
       let rawText = "";
       let finalIdx = -1;
+      let finalLen = 0;
       let localThinkingStart: number | undefined;
       let localAnswerStart: number | undefined;
 
@@ -229,11 +235,21 @@ export default function ChatInterface() {
 
             if (typeof deltaText === "string" && deltaText.length > 0) {
               rawText += deltaText;
-              if (finalIdx < 0) finalIdx = rawText.indexOf(FINAL_MARKER);
+              if (finalIdx < 0) {
+                const m = FINAL_RE.exec(rawText);
+                if (m && typeof m.index === "number") {
+                  finalIdx = m.index;
+                  finalLen = m[0].length;
+                }
+              }
 
               if (finalIdx >= 0) {
                 if (!localAnswerStart) localAnswerStart = Date.now();
-                const answer = rawText.slice(finalIdx + FINAL_MARKER.length).trimStart();
+                const answer = rawText
+                  .slice(finalIdx + finalLen)
+                  .replace(/^[\s\-–—:：]+/, "")
+                  .replace(/FINAL\s*[:：]/gi, "")
+                  .trimStart();
                 setMessages((prev) =>
                   prev.map((msg) =>
                     msg.id === aiMessageId ? { ...msg, content: answer } : msg
