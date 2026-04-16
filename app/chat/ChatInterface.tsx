@@ -13,6 +13,7 @@ interface Message {
   content: string;
   thinking?: string;
   thinkingOpen?: boolean;
+  requestStartMs?: number;
   thinkingStartMs?: number;
   thinkingMs?: number;
   answerStartMs?: number;
@@ -105,10 +106,19 @@ export default function ChatInterface() {
     setInput("");
     setIsLoading(true);
 
+    const requestStartMs = Date.now();
     const aiMessageId = (Date.now() + 1).toString();
     setMessages((prev) => [
       ...prev,
-      { id: aiMessageId, role: "ai", content: "", thinking: "", thinkingOpen: false },
+      {
+        id: aiMessageId,
+        role: "ai",
+        content: "",
+        thinking: "",
+        thinkingOpen: false,
+        requestStartMs,
+        thinkingStartMs: requestStartMs,
+      },
     ]);
 
     abortControllerRef.current = new AbortController();
@@ -220,11 +230,13 @@ export default function ChatInterface() {
                 );
               }
 
-              if (localThinkingStart && localAnswerStart) {
-                const ms = localAnswerStart - localThinkingStart;
+              if (localAnswerStart) {
+                const ms = localThinkingStart
+                  ? localAnswerStart - localThinkingStart
+                  : localAnswerStart - requestStartMs;
                 setMessages((prev) =>
                   prev.map((msg) =>
-                    msg.id === aiMessageId && msg.thinkingStartMs && msg.thinkingMs == null
+                    msg.id === aiMessageId && msg.thinkingMs == null
                       ? { ...msg, thinkingMs: ms }
                       : msg
                   )
@@ -395,7 +407,7 @@ export default function ChatInterface() {
                           </div>
                         ) : (
                           <div className="max-w-[92%] md:max-w-[80%]">
-                            {(msg.thinking || "").length > 0 && (
+                            {(thinkingType !== "disabled" || (msg.thinking || "").length > 0) && (
                               <div className="mb-3 rounded-3xl border border-black/10 bg-[#f4efe6] px-4 py-2">
                                 <button
                                   type="button"
@@ -422,7 +434,11 @@ export default function ChatInterface() {
                                 </button>
                                 {msg.thinkingOpen && (
                                   <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
-                                    {msg.thinking}
+                                    {(msg.thinking || "").trim().length > 0
+                                      ? msg.thinking
+                                      : lang === "zh"
+                                      ? "模型未返回思考内容"
+                                      : "No reasoning content returned by the model."}
                                   </div>
                                 )}
                               </div>

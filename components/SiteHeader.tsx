@@ -39,7 +39,7 @@ export default function SiteHeader(props: { active?: string }) {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-[#fbf7ef]/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-[#fbf7ef]/80 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
       <div className="border-b border-black/10">
         <div className="mx-auto flex h-8 max-w-6xl items-center justify-between px-4 text-[11px] md:px-6">
           <div className="flex items-center gap-2 text-black/45">
