@@ -1,19 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import SiteHeader from "@/components/SiteHeader";
 
-export default function Post({ params }: { params: { slug: string } }) {
+export default function Post() {
+  const params = useParams();
+  const slugParam = (params as any)?.slug;
+  const slug =
+    typeof slugParam === "string"
+      ? slugParam
+      : Array.isArray(slugParam) && typeof slugParam[0] === "string"
+      ? slugParam[0]
+      : "";
   const [post, setPost] = useState<any | null>(null);
   const [status, setStatus] = useState<"loading" | "ok" | "not_found" | "error">(
     "loading"
   );
 
   useEffect(() => {
+    if (!slug) return;
     setStatus("loading");
-    fetch(`/api/post?slug=${encodeURIComponent(params.slug)}`)
+    fetch(`/api/post?slug=${encodeURIComponent(slug)}`)
       .then(async (r) => {
         if (r.status === 404) {
           setStatus("not_found");
@@ -33,7 +43,7 @@ export default function Post({ params }: { params: { slug: string } }) {
         setStatus("error");
         setPost(null);
       });
-  }, [params.slug]);
+  }, [slug]);
 
   return (
     <div className="min-h-screen bg-[#fbf7ef] text-[#15130f]">
