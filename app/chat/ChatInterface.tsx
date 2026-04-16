@@ -268,7 +268,7 @@ export default function ChatInterface() {
     <div className="min-h-screen bg-[#fbf7ef] text-[#15130f]">
       <SiteHeader active="chat" />
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[1fr_360px] md:gap-8 md:px-6 md:py-10">
+      <div className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-10">
         <div className="rounded-3xl border border-black/10 bg-white/80 shadow-[0_18px_70px_rgba(0,0,0,0.08)] backdrop-blur-xl">
           <div className="flex flex-col gap-2 border-b border-black/10 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
             <div className="flex items-center gap-2">
@@ -396,7 +396,7 @@ export default function ChatInterface() {
                         ) : (
                           <div className="max-w-[92%] md:max-w-[80%]">
                             {(msg.thinking || "").length > 0 && (
-                              <div className="mb-3 rounded-3xl border border-black/10 bg-[#f4efe6] px-4 py-3">
+                              <div className="mb-3 rounded-3xl border border-black/10 bg-[#f4efe6] px-4 py-2">
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -420,13 +420,9 @@ export default function ChatInterface() {
                                     {msg.thinkingOpen ? ui.hideThinking : ui.showThinking}
                                   </span>
                                 </button>
-                                {msg.thinkingOpen ? (
+                                {msg.thinkingOpen && (
                                   <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
                                     {msg.thinking}
-                                  </div>
-                                ) : (
-                                  <div className="mt-2 text-[11px] text-black/40">
-                                    {lang === "zh" ? "默认隐藏" : "Hidden by default"}
                                   </div>
                                 )}
                               </div>
@@ -501,32 +497,6 @@ export default function ChatInterface() {
             </div>
           </div>
         </div>
-
-        <aside className="hidden flex-col gap-4 md:flex">
-          <div className="rounded-3xl border border-black/10 bg-white/60 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl">
-            <div className="text-sm font-semibold text-[#1e1c16]">快捷入口</div>
-            <div className="mt-4 grid grid-cols-1 gap-2 text-sm">
-              <Link
-                href="/blog/react-server-components"
-                className="rounded-2xl border border-black/10 bg-white/60 px-4 py-3 text-black/70 transition hover:bg-white"
-              >
-                文章
-              </Link>
-              <Link
-                href="/popup"
-                className="rounded-2xl border border-black/10 bg-white/60 px-4 py-3 text-black/70 transition hover:bg-white"
-              >
-                PopupMorph
-              </Link>
-              <Link
-                href="/tetris"
-                className="rounded-2xl border border-black/10 bg-white/60 px-4 py-3 text-black/70 transition hover:bg-white"
-              >
-                小游戏
-              </Link>
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );

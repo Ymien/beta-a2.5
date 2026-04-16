@@ -72,27 +72,7 @@ export default function SiteHeader(props: { active?: string }) {
           </div>
         </Link>
 
-        <div className="hidden items-center gap-6 text-sm md:flex">
-          <Link
-            href="/blog/react-server-components"
-            className={`transition ${
-              active === "blog"
-                ? "text-[#b45309]"
-                : "text-black/65 hover:text-black"
-            }`}
-          >
-            {lang === "zh" ? "随想" : "Notes"}
-          </Link>
-          <Link
-            href="/chat"
-            className={`transition ${
-              active === "chat"
-                ? "text-[#b45309]"
-                : "text-black/65 hover:text-black"
-            }`}
-          >
-            {lang === "zh" ? "对话" : "Dialog"}
-          </Link>
+        <div className="relative">
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -103,52 +83,44 @@ export default function SiteHeader(props: { active?: string }) {
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             <span>{lang === "zh" ? "目录" : "Menu"}</span>
           </button>
-        </div>
 
-        <div className="relative md:hidden">
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm font-medium text-black/70 shadow-sm transition hover:bg-white"
-            aria-label={lang === "zh" ? "打开目录" : "Open menu"}
-            aria-expanded={open}
+          <div
+            className={`absolute right-0 top-[calc(100%+10px)] w-[min(360px,calc(100vw-2rem))] rounded-3xl border border-black/10 bg-white/90 p-2 shadow-[0_22px_90px_rgba(0,0,0,0.22)] ${
+              open ? "block" : "hidden"
+            }`}
+            role="menu"
           >
-            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            <span>{lang === "zh" ? "目录" : "Menu"}</span>
-          </button>
-        </div>
-      </div>
-
-      <div
-        className={`border-t border-black/10 bg-[#fbf7ef] ${open ? "block" : "hidden"}`}
-      >
-        <div className="mx-auto max-w-6xl px-4 py-3 md:px-6">
-          <div className="grid grid-cols-1 gap-1">
-            {items.map((item) => {
-              const isActive =
-                (active && item.href === active) ||
-                (active === "home" && item.href === "/") ||
-                (active === "chat" && item.href === "/chat") ||
-                (active === "popup" && item.href === "/popup");
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className={`flex items-center justify-between rounded-2xl px-4 py-3 transition ${
-                    isActive
-                      ? "bg-black/5 text-[#b45309]"
-                      : "text-black/70 hover:bg-black/5 hover:text-black"
-                  }`}
-                >
-                  <span className="flex flex-col">
-                    <span className="text-sm font-medium">{item.label}</span>
-                    <span className="text-[11px] text-black/45">{item.desc}</span>
-                  </span>
-                  <span className="text-black/30">↗</span>
-                </Link>
-              );
-            })}
+            <div className="px-3 pb-2 pt-1 text-[11px] font-medium tracking-widest text-black/45">
+              {lang === "zh" ? "目录" : "MENU"}
+            </div>
+            <div className="grid grid-cols-1 gap-1">
+              {items.map((item) => {
+                const isActive =
+                  (active && item.href === active) ||
+                  (active === "home" && item.href === "/") ||
+                  (active === "chat" && item.href === "/chat") ||
+                  (active === "popup" && item.href === "/popup");
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center justify-between rounded-2xl px-4 py-3 transition ${
+                      isActive
+                        ? "bg-black/5 text-[#b45309]"
+                        : "text-black/70 hover:bg-black/5 hover:text-black"
+                    }`}
+                    role="menuitem"
+                  >
+                    <span className="flex flex-col">
+                      <span className="text-sm font-medium">{item.label}</span>
+                      <span className="text-[11px] text-black/45">{item.desc}</span>
+                    </span>
+                    <span className="text-black/30">↗</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
