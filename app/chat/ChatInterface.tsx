@@ -72,7 +72,6 @@ export default function ChatInterface() {
   const [selectedModel, setSelectedModel] = useState(models[0]?.id ?? "doubao2.0pro");
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [thinkingType, setThinkingType] = useState<ThinkingType>("auto");
-  const [showThinking, setShowThinking] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -122,7 +121,14 @@ export default function ChatInterface() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText);
+        try {
+          const json = JSON.parse(errorText);
+          const msg = json?.error?.message || json?.error || errorText;
+          const rid = json?.error?.requestId ? ` (requestId: ${json.error.requestId})` : "";
+          throw new Error(`${msg}${rid}`);
+        } catch {
+          throw new Error(errorText);
+        }
       }
 
       if (!response.body) throw new Error("No response body");
@@ -300,18 +306,6 @@ export default function ChatInterface() {
 
               <button
                 type="button"
-                onClick={() => setShowThinking((v) => !v)}
-                className={`rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition ${
-                  showThinking
-                    ? "border-black/10 bg-white text-black/70"
-                    : "border-black/10 bg-white/60 text-black/60 hover:bg-white"
-                }`}
-              >
-                {showThinking ? ui.hideThinking : ui.showThinking}
-              </button>
-
-              <button
-                type="button"
                 onClick={() => {
                   stop();
                   setMessages([]);
@@ -348,38 +342,48 @@ export default function ChatInterface() {
                               : "border-black/10 bg-white/70 text-[#1e1c16] shadow-sm"
                           }`}
                         >
-                      {!isUser && !isSystem && showThinking && (msg.thinking || "").length > 0 && (
-                        <div className="mb-3 rounded-2xl border border-black/10 bg-black/[0.03] p-3">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setMessages((prev) =>
-                                prev.map((m) =>
-                                  m.id === msg.id ? { ...m, thinkingOpen: !m.thinkingOpen } : m
-                                )
-                              )
-                            }
-                            className="flex w-full items-center justify-between text-xs font-medium text-black/60"
-                          >
-                            <span>{ui.thinkingPanel}</span>
-                            <span className="text-black/35">{msg.thinkingOpen ? "−" : "+"}</span>
-                          </button>
-                          {msg.thinkingOpen && (
-                            <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
-                              {msg.thinking}
+                      {isUser || isSystem ? (
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                      ) : (
+                        <div className="flex flex-col gap-3">
+                          {(msg.thinking || "").length > 0 && (
+                            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-3">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setMessages((prev) =>
+                                    prev.map((m) =>
+                                      m.id === msg.id ? { ...m, thinkingOpen: !m.thinkingOpen } : m
+                                    )
+                                  )
+                                }
+                                className="flex w-full items-center justify-between text-xs font-medium text-black/60"
+                              >
+                                <span>{ui.thinkingPanel}</span>
+                                <span className="text-black/35">
+                                  {msg.thinkingOpen ? ui.hideThinking : ui.showThinking}
+                                </span>
+                              </button>
+                              {msg.thinkingOpen && (
+                                <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
+                                  {msg.thinking}
+                                </div>
+                              )}
                             </div>
                           )}
-                        </div>
-                      )}
-                          {isUser || isSystem ? (
-                            <div className="whitespace-pre-wrap">{msg.content}</div>
-                          ) : (
+
+                          <div className="rounded-2xl border border-black/10 bg-white/60 p-3">
+                            <div className="mb-2 text-[11px] font-medium tracking-widest text-black/40">
+                              {lang === "zh" ? "输出" : "ANSWER"}
+                            </div>
                             <div className="prose prose-sm max-w-none prose-p:my-2 prose-pre:my-3 prose-pre:rounded-2xl prose-pre:border prose-pre:border-black/10 prose-pre:bg-black/90 prose-pre:text-white">
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                 {msg.content || "..."}
                               </ReactMarkdown>
                             </div>
-                          )}
+                          </div>
+                        </div>
+                      )}
                         </div>
                       </div>
                     );

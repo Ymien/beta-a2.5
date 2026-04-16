@@ -1,5 +1,13 @@
 export const runtime = "edge";
 
+function tryParseJson(text: string): any | null {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { messages, modelId, thinkingType } = await req.json();
@@ -126,8 +134,25 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      return new Response(JSON.stringify({ error: err }), { status: response.status });
+      const raw = await response.text();
+      const parsed = tryParseJson(raw);
+      const nested =
+        parsed && typeof parsed?.error === "string" ? tryParseJson(parsed.error) : null;
+      const e = nested?.error || parsed?.error || parsed || {};
+      const message =
+        e?.message ||
+        e?.error?.message ||
+        (typeof raw === "string" ? raw : "Request failed");
+      const code = e?.code || e?.error?.code;
+      const requestId =
+        (typeof message === "string" && message.match(/Request id:\s*([0-9a-f]+)/i)?.[1]) ||
+        e?.request_id ||
+        e?.requestId;
+
+      return new Response(
+        JSON.stringify({ error: { message, code, requestId } }),
+        { status: response.status }
+      );
     }
 
     return new Response(response.body, {

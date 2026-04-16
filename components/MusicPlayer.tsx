@@ -44,14 +44,14 @@ export default function MusicPlayer() {
   return (
     <div className="fixed bottom-5 right-5 z-50">
       <div
-        className={`overflow-hidden border border-black/10 bg-white/70 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-all duration-300 ${
+        className={`overflow-hidden border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-[0_20px_70px_rgba(0,0,0,0.55)] transition-all duration-300 ${
           isOpen ? "w-[min(320px,calc(100vw-2.5rem))] rounded-3xl" : "w-12 rounded-full"
         }`}
       >
         <button
           type="button"
           onClick={() => setIsOpen((v) => !v)}
-          className="flex h-12 w-12 items-center justify-center text-black/70 transition hover:text-black"
+          className="flex h-12 w-12 items-center justify-center text-white/80 transition hover:text-white"
           aria-label={lang === "zh" ? "打开播放器" : "Open player"}
         >
           <Music2 className="h-5 w-5" />
@@ -61,10 +61,10 @@ export default function MusicPlayer() {
           <div className="px-4 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <div className="text-sm font-semibold text-[#15130f]">
+                <div className="text-sm font-semibold text-white">
                   {lang === "zh" ? "音乐" : "Music"}
                 </div>
-                <div className="text-[11px] text-black/45">
+                <div className="text-[11px] text-white/45">
                   {lang === "zh" ? "点击播放开始" : "Click play to start"}
                 </div>
               </div>
@@ -73,7 +73,7 @@ export default function MusicPlayer() {
                 <button
                   type="button"
                   onClick={() => setIsMuted((v) => !v)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/70 text-black/60 transition hover:bg-white hover:text-black"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/70 transition hover:bg-white/[0.1] hover:text-white"
                   aria-label={lang === "zh" ? "静音" : "Mute"}
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -89,12 +89,12 @@ export default function MusicPlayer() {
               </div>
             </div>
 
-            <div className="mt-3 h-1 w-full rounded-full bg-black/10 overflow-hidden">
+            <div className="mt-3 h-1 w-full rounded-full bg-white/10 overflow-hidden">
               <div className="h-full bg-[#b45309]" style={{ width: `${Number.isFinite(progress) ? progress : 0}%` }} />
             </div>
 
             {error && (
-              <div className="mt-3 text-[11px] text-[#991b1b]">
+              <div className="mt-3 text-[11px] text-[#fecaca]">
                 {error}
               </div>
             )}

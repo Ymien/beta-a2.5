@@ -39,17 +39,17 @@ export default function SiteHeader(props: { active?: string }) {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-black/10 bg-[#fbf7ef]/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0b0b0f]/70 backdrop-blur-xl">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full border border-black/10 bg-white/70 p-1">
+          <div className="h-8 w-8 rounded-full border border-white/10 bg-white/[0.06] p-1">
             <img src="/avatar.svg" alt="Xyu" className="h-full w-full rounded-full" />
           </div>
           <div className="flex flex-col leading-none">
-            <span className="text-[15px] font-semibold tracking-tight text-[#15130f]">
+            <span className="font-[var(--font-display)] text-[16px] font-medium tracking-tight text-white">
               {lang === "zh" ? "留白" : "Blank Space"}
             </span>
-            <span className="text-[11px] text-black/40">Xyu</span>
+            <span className="text-[11px] text-white/45">Xyu</span>
           </div>
         </Link>
 
@@ -57,7 +57,7 @@ export default function SiteHeader(props: { active?: string }) {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-3 py-2 text-sm font-medium text-black/70 shadow-sm transition hover:bg-white"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:bg-white/[0.09]"
             aria-label={lang === "zh" ? "打开目录" : "Open menu"}
             aria-expanded={open}
           >
@@ -66,13 +66,13 @@ export default function SiteHeader(props: { active?: string }) {
           </button>
 
           <div
-            className={`absolute right-0 top-[calc(100%+10px)] w-[min(320px,calc(100vw-2rem))] rounded-3xl border border-black/10 bg-[#fffaf3] p-2 shadow-[0_22px_70px_rgba(0,0,0,0.18)] ${
+            className={`absolute right-0 top-[calc(100%+10px)] w-[min(320px,calc(100vw-2rem))] rounded-3xl border border-white/10 bg-[#14131a]/95 p-2 shadow-[0_22px_90px_rgba(0,0,0,0.55)] ${
               open ? "block" : "hidden"
             }`}
             role="menu"
           >
             <div className="px-3 pb-2 pt-1 flex items-center justify-between">
-              <div className="text-[11px] font-medium tracking-widest text-black/40">
+              <div className="text-[11px] font-medium tracking-widest text-white/45">
                 {lang === "zh" ? "入口" : "PORTALS"}
               </div>
               <button
@@ -81,7 +81,7 @@ export default function SiteHeader(props: { active?: string }) {
                   toggleLang();
                   setOpen(false);
                 }}
-                className="rounded-full border border-black/10 bg-white/70 px-3 py-1 text-[11px] font-medium text-black/60 transition hover:bg-white"
+                className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-[11px] font-medium text-white/70 transition hover:bg-white/[0.1]"
               >
                 {lang === "zh" ? "EN" : "中文"}
               </button>
@@ -100,16 +100,16 @@ export default function SiteHeader(props: { active?: string }) {
                     onClick={() => setOpen(false)}
                     className={`flex items-center justify-between rounded-2xl px-4 py-3 text-sm transition ${
                       isActive
-                        ? "bg-black/5 text-[#b45309]"
-                        : "text-black/70 hover:bg-black/5 hover:text-black"
+                        ? "bg-white/[0.06] text-[#e7c7a3]"
+                        : "text-white/80 hover:bg-white/[0.06] hover:text-white"
                     }`}
                     role="menuitem"
                   >
                     <span className="flex flex-col">
                       <span className="font-medium">{item.label}</span>
-                      <span className="text-[11px] text-black/40">{item.desc}</span>
+                      <span className="text-[11px] text-white/45">{item.desc}</span>
                     </span>
-                    <span className="text-black/25">↗</span>
+                    <span className="text-white/25">↗</span>
                   </Link>
                 );
               })}
