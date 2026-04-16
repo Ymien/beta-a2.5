@@ -13,6 +13,9 @@ interface Message {
   content: string;
   thinking?: string;
   thinkingOpen?: boolean;
+  thinkingStartMs?: number;
+  thinkingMs?: number;
+  answerStartMs?: number;
 }
 
 type ThinkingType = "auto" | "enabled" | "disabled";
@@ -103,7 +106,10 @@ export default function ChatInterface() {
     setIsLoading(true);
 
     const aiMessageId = (Date.now() + 1).toString();
-    setMessages((prev) => [...prev, { id: aiMessageId, role: "ai", content: "", thinking: "", thinkingOpen: false }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: aiMessageId, role: "ai", content: "", thinking: "", thinkingOpen: false },
+    ]);
 
     abortControllerRef.current = new AbortController();
 
@@ -136,6 +142,8 @@ export default function ChatInterface() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let aiText = "";
+      let localThinkingStart: number | undefined;
+      let localAnswerStart: number | undefined;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -173,6 +181,7 @@ export default function ChatInterface() {
                 data.text);
 
             if (typeof thinkingDelta === "string" && thinkingDelta.length > 0) {
+              if (!localThinkingStart) localThinkingStart = Date.now();
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === aiMessageId
@@ -180,18 +189,61 @@ export default function ChatInterface() {
                     : msg
                 )
               );
+
+              if (localThinkingStart) {
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMessageId && !msg.thinkingStartMs
+                      ? { ...msg, thinkingStartMs: localThinkingStart }
+                      : msg
+                  )
+                );
+              }
             }
 
             if (typeof deltaText === "string" && deltaText.length > 0) {
+              if (!localAnswerStart) localAnswerStart = Date.now();
               aiText += deltaText;
               setMessages((prev) =>
                 prev.map((msg) =>
                   msg.id === aiMessageId ? { ...msg, content: aiText } : msg
                 )
               );
+
+              if (localAnswerStart) {
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMessageId && !msg.answerStartMs
+                      ? { ...msg, answerStartMs: localAnswerStart }
+                      : msg
+                  )
+                );
+              }
+
+              if (localThinkingStart && localAnswerStart) {
+                const ms = localAnswerStart - localThinkingStart;
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMessageId && msg.thinkingStartMs && msg.thinkingMs == null
+                      ? { ...msg, thinkingMs: ms }
+                      : msg
+                  )
+                );
+              }
             }
           } catch (e) {}
         }
+      }
+
+      if (localThinkingStart && !localAnswerStart) {
+        const ms = Date.now() - localThinkingStart;
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMessageId && msg.thinkingStartMs && msg.thinkingMs == null
+              ? { ...msg, thinkingMs: ms }
+              : msg
+          )
+        );
       }
     } catch (error: any) {
       if (error.name !== "AbortError") {
@@ -359,14 +411,27 @@ export default function ChatInterface() {
                                 }
                                 className="flex w-full items-center justify-between text-xs font-medium text-black/60"
                               >
-                                <span>{ui.thinkingPanel}</span>
+                                <span className="flex items-center gap-2">
+                                  <span>{ui.thinkingPanel}</span>
+                                  <span className="text-black/35 font-mono">
+                                    {typeof msg.thinkingMs === "number"
+                                      ? `${(msg.thinkingMs / 1000).toFixed(1)}s`
+                                      : ""}
+                                  </span>
+                                </span>
                                 <span className="text-black/35">
                                   {msg.thinkingOpen ? ui.hideThinking : ui.showThinking}
                                 </span>
                               </button>
-                              {msg.thinkingOpen && (
+                              {msg.thinkingOpen ? (
                                 <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
                                   {msg.thinking}
+                                </div>
+                              ) : (
+                                <div className="mt-2 text-[11px] text-black/40">
+                                  {lang === "zh"
+                                    ? "已隐藏（点击显示）"
+                                    : "Hidden (click to show)"}
                                 </div>
                               )}
                             </div>
