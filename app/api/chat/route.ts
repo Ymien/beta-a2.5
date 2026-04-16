@@ -8,8 +8,8 @@ export async function POST(req: Request) {
 
     const system =
       thinkingType === "enabled"
-        ? "你是 NeuraChat，一个严谨的智能助手。请先充分思考，再给出结构清晰、可执行的答案。"
-        : "你是 NeuraChat，一个高质量的智能助手。请直接给出清晰准确的回答。";
+        ? "你是 Xyu 的智能助手。请先充分思考，再给出结构清晰、可执行的答案。"
+        : "你是 Xyu 的智能助手。请直接给出清晰准确的回答。";
 
     const toChatMessages = () => [
       { role: "system", content: system },
@@ -92,10 +92,17 @@ export async function POST(req: Request) {
     const url =
       info.endpoint === "responses" ? `${base}/responses` : `${base}/chat/completions`;
 
-    const thinking =
+    const normalizedThinkingType =
       thinkingType === "enabled" || thinkingType === "disabled" || thinkingType === "auto"
-        ? { type: thinkingType }
-        : { type: "auto" };
+        ? thinkingType
+        : "auto";
+
+    const effectiveThinkingType =
+      modelId === "glm4.7" && normalizedThinkingType === "auto"
+        ? "disabled"
+        : normalizedThinkingType;
+
+    const thinking = { type: effectiveThinkingType };
 
     const body =
       info.endpoint === "responses"

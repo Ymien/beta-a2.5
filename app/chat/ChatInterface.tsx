@@ -44,6 +44,12 @@ export default function ChatInterface() {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    if (selectedModel === "glm4.7" && thinkingType === "auto") {
+      setThinkingType("disabled");
+    }
+  }, [selectedModel, thinkingType]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -152,8 +158,8 @@ export default function ChatInterface() {
                 </span>
               </div>
               <div className="flex flex-col leading-tight">
-                <div className="text-base font-semibold">NeuraChat</div>
-                <div className="text-xs text-black/50">AI 对话体验</div>
+                <div className="text-base font-semibold">AI 聊天</div>
+                <div className="text-xs text-black/50">多模型 · 流式输出</div>
               </div>
             </div>
 

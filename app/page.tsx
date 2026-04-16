@@ -113,80 +113,10 @@ export default function Home() {
                 </svg>
                 GitHub
               </a>
-              <Link
-                href="/chat"
-                className="inline-flex items-center gap-2 rounded-full bg-[#e7c7a3] px-5 py-2.5 text-sm font-medium text-[#1e1c16] shadow-sm transition hover:bg-[#ddb98f]"
-              >
-                进入 AI 聊天
-              </Link>
             </div>
           </div>
           <div className="flex items-center justify-center">
             <Hitokoto />
-          </div>
-        </section>
-
-        {/* Projects Section */}
-        <section id="projects" className="mt-14">
-          <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-[#1e1c16] md:text-2xl">
-              {t.sectionProjects}
-            </h3>
-            <div className="hidden text-sm text-black/40 md:block">工具 · AI · 游戏</div>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-            <Link href="/chat" className="group block p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-cyan-500/30 transition-all duration-300 text-left">
-              <div className="flex justify-between items-start mb-6">
-                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                </div>
-                <svg className="w-5 h-5 text-zinc-600 group-hover:text-cyan-400 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-              </div>
-              <h4 className="text-xl font-bold text-zinc-200 group-hover:text-cyan-300 transition-colors mb-3">{t.projectSynapseTitle}</h4>
-              <p className="text-sm text-zinc-500 leading-relaxed">
-                {t.projectSynapseDesc}
-              </p>
-            </Link>
-
-            <Link href="/tetris" className="group block p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-fuchsia-500/30 transition-all duration-300 text-left">
-              <div className="flex justify-between items-start mb-6">
-                <div className="w-12 h-12 rounded-xl bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-400 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                </div>
-                <svg className="w-5 h-5 text-zinc-600 group-hover:text-fuchsia-400 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-              </div>
-              <h4 className="text-xl font-bold text-zinc-200 group-hover:text-fuchsia-300 transition-colors mb-3">{t.projectTetrisTitle}</h4>
-              <p className="text-sm text-zinc-500 leading-relaxed">
-                {t.projectTetrisDesc}
-              </p>
-            </Link>
-
-            <Link href="/game" className="group block p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-purple-500/30 transition-all duration-300 text-left">
-              <div className="flex justify-between items-start mb-6">
-                <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                </div>
-                <svg className="w-5 h-5 text-zinc-600 group-hover:text-purple-400 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-              </div>
-              <h4 className="text-xl font-bold text-zinc-200 group-hover:text-purple-300 transition-colors mb-3">{t.projectMatchTitle}</h4>
-              <p className="text-sm text-zinc-500 leading-relaxed">
-                {t.projectMatchDesc}
-              </p>
-            </Link>
-
-            <Link href="/popup" className="group block p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-yellow-500/30 transition-all duration-300 text-left">
-              <div className="flex justify-between items-start mb-6">
-                <div className="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-400 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
-                </div>
-                <svg className="w-5 h-5 text-zinc-600 group-hover:text-yellow-400 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-              </div>
-              <h4 className="text-xl font-bold text-zinc-200 group-hover:text-yellow-300 transition-colors mb-3">{t.projectPopupTitle}</h4>
-              <p className="text-sm text-zinc-500 leading-relaxed">
-                {t.projectPopupDesc}
-              </p>
-            </Link>
           </div>
         </section>
 
@@ -196,7 +126,7 @@ export default function Home() {
             <h3 className="text-xl font-semibold text-[#1e1c16] md:text-2xl">
               {t.sectionBlog}
             </h3>
-            <div className="hidden text-sm text-black/40 md:block">Markdown · 阅读模式</div>
+            <div className="hidden text-sm text-black/40 md:block">Markdown · 阅读</div>
           </div>
           
           <div className="flex flex-col gap-6 rounded-[28px] border border-black/10 bg-white/60 px-6 py-8 shadow-[0_18px_60px_rgba(0,0,0,0.06)] backdrop-blur-xl md:px-10 md:py-10">
@@ -206,13 +136,13 @@ export default function Home() {
                   {post.date}
                 </time>
                 <div className="flex-1">
-                  <h4 className="text-2xl font-bold text-zinc-200 group-hover:text-cyan-400 transition-colors mb-4">
+                  <h4 className="text-xl md:text-2xl font-semibold text-[#15130f] group-hover:text-[#b45309] transition-colors mb-3">
                     <Link href={`/blog/${post.slug}`}>{post.title}</Link>
                   </h4>
-                  <p className="text-zinc-400 leading-relaxed mb-4">
+                  <p className="text-black/60 leading-relaxed mb-3">
                     {post.excerpt}
                   </p>
-                  <Link href={`/blog/${post.slug}`} className="text-sm text-cyan-500 font-medium group-hover:underline inline-flex items-center gap-2">
+                  <Link href={`/blog/${post.slug}`} className="text-sm text-[#b45309] font-medium group-hover:underline inline-flex items-center gap-2">
                     {t.readMore}
                     <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                   </Link>
