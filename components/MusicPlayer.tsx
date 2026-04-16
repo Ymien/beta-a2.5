@@ -41,6 +41,8 @@ export default function MusicPlayer() {
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const hoverCloseTimerRef = useRef<number | null>(null);
+  const isTouchRef = useRef(false);
 
   const track = tracks[Math.min(trackIndex, tracks.length - 1)] || tracks[0];
 
@@ -96,7 +98,22 @@ export default function MusicPlayer() {
   const prevTrack = () => setTrackIndex((i) => (i - 1 + tracks.length) % tracks.length);
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div
+      className="fixed bottom-5 right-5 z-50"
+      onTouchStart={() => {
+        isTouchRef.current = true;
+      }}
+      onMouseEnter={() => {
+        if (isTouchRef.current) return;
+        if (hoverCloseTimerRef.current) window.clearTimeout(hoverCloseTimerRef.current);
+        setIsOpen(true);
+      }}
+      onMouseLeave={() => {
+        if (isTouchRef.current) return;
+        if (hoverCloseTimerRef.current) window.clearTimeout(hoverCloseTimerRef.current);
+        hoverCloseTimerRef.current = window.setTimeout(() => setIsOpen(false), 180);
+      }}
+    >
       <div
         className={`overflow-hidden border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-[0_20px_70px_rgba(0,0,0,0.55)] transition-all duration-300 ${
           isOpen ? "w-[min(360px,calc(100vw-2.5rem))] rounded-3xl" : "w-12 rounded-full"
