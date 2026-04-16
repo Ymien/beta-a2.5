@@ -3,26 +3,39 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useLang } from "@/components/LangProvider";
 
 type NavItem = {
   href: string;
   label: string;
+  desc: string;
 };
 
 export default function SiteHeader(props: { active?: string }) {
   const { active } = props;
   const [open, setOpen] = useState(false);
+  const { lang, toggleLang } = useLang();
 
   const items = useMemo<NavItem[]>(
-    () => [
-      { href: "/", label: "首页" },
-      { href: "/blog/react-server-components", label: "文章" },
-      { href: "/chat", label: "AI 聊天" },
-      { href: "/popup", label: "PopupMorph" },
-      { href: "/tetris", label: "Neon Tetris" },
-      { href: "/game", label: "Cyber Match" },
-    ],
-    []
+    () =>
+      lang === "zh"
+        ? [
+            { href: "/", label: "首页", desc: "写作与实验的入口" },
+            { href: "/blog/react-server-components", label: "随笔", desc: "文章、记录与想法" },
+            { href: "/chat", label: "AI 聊天", desc: "多模型 · 思考模式" },
+            { href: "/popup", label: "PopupMorph", desc: "弹窗形状动画生成器" },
+            { href: "/tetris", label: "Neon Tetris", desc: "霓虹俄罗斯方块" },
+            { href: "/game", label: "Cyber Match", desc: "记忆配对小游戏" },
+          ]
+        : [
+            { href: "/", label: "Home", desc: "Start here" },
+            { href: "/blog/react-server-components", label: "Notes", desc: "Posts and small essays" },
+            { href: "/chat", label: "AI Chat", desc: "Multi-model · Thinking" },
+            { href: "/popup", label: "PopupMorph", desc: "Popup shape animator" },
+            { href: "/tetris", label: "Neon Tetris", desc: "Neon tetris" },
+            { href: "/game", label: "Cyber Match", desc: "Memory match game" },
+          ],
+    [lang]
   );
 
   return (
@@ -55,8 +68,20 @@ export default function SiteHeader(props: { active?: string }) {
             }`}
             role="menu"
           >
-            <div className="px-3 pb-2 pt-1 text-[11px] font-medium tracking-widest text-black/40">
-              PORTALS
+            <div className="px-3 pb-2 pt-1 flex items-center justify-between">
+              <div className="text-[11px] font-medium tracking-widest text-black/40">
+                PORTALS
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  toggleLang();
+                  setOpen(false);
+                }}
+                className="rounded-full border border-black/10 bg-white/70 px-3 py-1 text-[11px] font-medium text-black/60 transition hover:bg-white"
+              >
+                {lang === "zh" ? "EN" : "中文"}
+              </button>
             </div>
             <div className="flex flex-col">
               {items.map((item) => {
@@ -77,7 +102,10 @@ export default function SiteHeader(props: { active?: string }) {
                     }`}
                     role="menuitem"
                   >
-                    <span>{item.label}</span>
+                    <span className="flex flex-col">
+                      <span className="font-medium">{item.label}</span>
+                      <span className="text-[11px] text-black/40">{item.desc}</span>
+                    </span>
                     <span className="text-black/25">↗</span>
                   </Link>
                 );

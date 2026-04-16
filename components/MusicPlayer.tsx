@@ -1,25 +1,37 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, Pause, SkipForward, SkipBack, Music2 } from "lucide-react";
+import { Play, Pause, Music2, Volume2, VolumeX } from "lucide-react";
+import { useLang } from "@/components/LangProvider";
 
 export default function MusicPlayer() {
+  const { lang } = useLang();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // 占位无版权免费音乐 URL
-  const audioUrl = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_2d8fb6165e.mp3?filename=cyberpunk-2099-10701.mp3";
+  const audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(e => console.log("Audio play prevented:", e));
+        setError(null);
+        audioRef.current.play().catch(() => {
+          setIsPlaying(false);
+          setError(lang === "zh" ? "浏览器阻止了自动播放，请点击播放按钮" : "Autoplay is blocked. Click play.");
+        });
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying]);
+  }, [isPlaying, lang]);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.muted = isMuted;
+  }, [isMuted]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -30,46 +42,73 @@ export default function MusicPlayer() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 group">
-      <div className="w-14 h-14 bg-white/5 border border-white/10 backdrop-blur-xl rounded-full flex items-center justify-center cursor-pointer shadow-[0_8px_32px_rgba(0,0,0,0.5)] group-hover:w-64 group-hover:rounded-2xl transition-all duration-500 overflow-hidden">
-        
-        {/* Compact View */}
-        <div className={`absolute transition-opacity duration-300 ${isPlaying ? 'animate-spin-slow' : ''} group-hover:opacity-0`}>
-          <Music2 className={`w-6 h-6 ${isPlaying ? 'text-cyan-400' : 'text-zinc-400'}`} />
-        </div>
+    <div className="fixed bottom-5 right-5 z-50">
+      <div
+        className={`overflow-hidden border border-black/10 bg-white/70 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-all duration-300 ${
+          isOpen ? "w-[min(320px,calc(100vw-2.5rem))] rounded-3xl" : "w-12 rounded-full"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          className="flex h-12 w-12 items-center justify-center text-black/70 transition hover:text-black"
+          aria-label={lang === "zh" ? "打开播放器" : "Open player"}
+        >
+          <Music2 className="h-5 w-5" />
+        </button>
 
-        {/* Expanded View */}
-        <div className="absolute inset-0 px-4 py-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
-          <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-fuchsia-500 flex-shrink-0 flex items-center justify-center ${isPlaying ? 'animate-spin-slow' : ''}`}>
-            <div className="w-3 h-3 bg-[#0f172a] rounded-full"></div>
-          </div>
-          
-          <div className="flex-1 flex flex-col justify-center overflow-hidden">
-            <h4 className="text-xs font-bold text-white truncate w-full">Cyberpunk 2099</h4>
-            <p className="text-[10px] text-zinc-400 truncate w-full">Xyu Mix</p>
-            {/* Progress Bar */}
-            <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
-              <div 
-                className="h-full bg-cyan-400 rounded-full"
-                style={{ width: `${progress}%` }}
-              ></div>
+        {isOpen && (
+          <div className="px-4 pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <div className="text-sm font-semibold text-[#15130f]">
+                  {lang === "zh" ? "音乐" : "Music"}
+                </div>
+                <div className="text-[11px] text-black/45">
+                  {lang === "zh" ? "点击播放开始" : "Click play to start"}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsMuted((v) => !v)}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/70 text-black/60 transition hover:bg-white hover:text-black"
+                  aria-label={lang === "zh" ? "静音" : "Mute"}
+                >
+                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPlaying((v) => !v)}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#e7c7a3] text-[#15130f] transition hover:bg-[#ddb98f]"
+                  aria-label={isPlaying ? (lang === "zh" ? "暂停" : "Pause") : (lang === "zh" ? "播放" : "Play")}
+                >
+                  {isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+                </button>
+              </div>
             </div>
+
+            <div className="mt-3 h-1 w-full rounded-full bg-black/10 overflow-hidden">
+              <div className="h-full bg-[#b45309]" style={{ width: `${Number.isFinite(progress) ? progress : 0}%` }} />
+            </div>
+
+            {error && (
+              <div className="mt-3 text-[11px] text-[#991b1b]">
+                {error}
+              </div>
+            )}
+
+            <audio
+              ref={audioRef}
+              src={audioUrl}
+              preload="none"
+              crossOrigin="anonymous"
+              onTimeUpdate={handleTimeUpdate}
+              onError={() => setError(lang === "zh" ? "音频加载失败" : "Audio failed to load")}
+            />
           </div>
-
-          <button 
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:text-cyan-400 hover:bg-white/20 transition-colors flex-shrink-0"
-          >
-            {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-1" />}
-          </button>
-        </div>
-
-        <audio 
-          ref={audioRef}
-          src={audioUrl}
-          loop
-          onTimeUpdate={handleTimeUpdate}
-        />
+        )}
       </div>
     </div>
   );

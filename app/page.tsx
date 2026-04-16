@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SiteHeader from "@/components/SiteHeader";
 import Hitokoto from "@/components/Hitokoto";
 import MusicPlayer from "@/components/MusicPlayer";
 import type { Post } from "@/lib/posts";
+import { useLang } from "@/components/LangProvider";
 
 export default function Home() {
-  const [lang, setLang] = useState<"zh" | "en">("zh");
+  const { lang } = useLang();
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
@@ -18,64 +19,39 @@ export default function Home() {
       .catch(() => setPosts([]));
   }, []);
 
-  const t = {
-    zh: {
-      navHome: "主页",
-      navBlog: "文章",
-      navProjects: "项目",
-      langToggle: "EN",
-      heroGreeting: "Hi, I'm Xyu 👋",
-      heroTitle: "代码与设计的交响乐",
-      heroDesc: "我是一名充满激情的开发者，喜欢构建极致体验的 Web 应用与创意工具。这是我的数字花园，记录着我的思考、灵感与实验。",
-      sectionProjects: "精选项目",
-      projectSynapseTitle: "Synapse AI",
-      projectSynapseDesc: "沉浸式前端大语言模型聊天模拟界面，具有极具科幻感的思考动画与流式打字输出。",
-      projectTetrisTitle: "Neon Tetris",
-      projectTetrisDesc: "摒弃 Canvas，采用纯 DOM + CSS Grid 打造的 60fps 赛博朋克风俄罗斯方块。",
-      projectMatchTitle: "Cyber Match",
-      projectMatchDesc: "考验短期记忆的卡片配对游戏，拥有平滑的 3D 翻转与霓虹边缘发光特效。",
-      projectPopupTitle: "PopupMorph",
-      projectPopupDesc: "极具创意的弹窗形状动画生成器，通过弹窗组合成形状并创建 GIF 动画效果。",
-      sectionBlog: "最新文章",
-      readMore: "阅读文章 →",
-      footerCopyright: "© 2026 Xyu. All rights reserved.",
-    },
-    en: {
-      navHome: "Home",
-      navBlog: "Blog",
-      navProjects: "Projects",
-      langToggle: "中",
-      heroGreeting: "Hi, I'm Xyu 👋",
-      heroTitle: "A Symphony of Code & Design.",
-      heroDesc: "I'm a passionate developer who loves building web apps and creative tools with extreme experiences. Welcome to my digital garden, where I log my thoughts, inspirations, and experiments.",
-      sectionProjects: "Featured Projects",
-      projectSynapseTitle: "Synapse AI",
-      projectSynapseDesc: "An immersive frontend LLM chat simulation interface, featuring sci-fi thinking animations and streaming typewriter output.",
-      projectTetrisTitle: "Neon Tetris",
-      projectTetrisDesc: "Ditching Canvas for pure DOM + CSS Grid. A 60fps cyberpunk-themed Tetris game.",
-      projectMatchTitle: "Cyber Match",
-      projectMatchDesc: "A short-term memory card matching game with smooth 3D flips and neon edge-glow effects.",
-      projectPopupTitle: "PopupMorph",
-      projectPopupDesc: "A highly creative popup shape animation generator to build shapes and create GIF animations via system popups.",
-      sectionBlog: "Latest Posts",
-      readMore: "Read Post →",
-      footerCopyright: "© 2026 Xyu. All rights reserved.",
-    }
-  }[lang];
-
-  const toggleLang = () => setLang(lang === "zh" ? "en" : "zh");
+  const t = useMemo(
+    () =>
+      lang === "zh"
+        ? {
+            heroTitle: "这里是 Xyu 的小站。",
+            heroDesc:
+              "开发者。写一些随笔，做一些实验，留下一点进度。你可以从右上角的“导航”进入各个入口：AI 聊天、PopupMorph、小玩具和文章。",
+            sectionNotes: "随笔 / Notes",
+            readMore: "打开阅读 →",
+            footerCopyright: "© 2026 Xyu.",
+          }
+        : {
+            heroTitle: "Xyu's corner on the internet.",
+            heroDesc:
+              "Developer. I write notes, ship small experiments, and keep a lightweight devlog. Use the top-right menu to jump into AI Chat, PopupMorph, games, and posts.",
+            sectionNotes: "Notes",
+            readMore: "Read →",
+            footerCopyright: "© 2026 Xyu.",
+          },
+    [lang]
+  );
 
   return (
-    <div className="min-h-screen bg-[#f7f2e8] text-[#1e1c16]">
+    <div className="min-h-screen bg-[#fbf7ef] text-[#15130f]">
       <SiteHeader active="home" />
 
       {/* Main Content */}
       <main className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
         
         {/* Hero Section */}
-        <section className="grid grid-cols-1 gap-10 rounded-[32px] border border-black/10 bg-white/60 px-6 py-10 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl md:grid-cols-[1.2fr_0.8fr] md:px-10 md:py-14">
+        <section className="grid grid-cols-1 gap-10 rounded-[32px] border border-black/10 bg-white/70 px-6 py-10 shadow-[0_18px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl md:grid-cols-[1.2fr_0.8fr] md:px-10 md:py-14">
           <div className="flex flex-col items-start gap-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-medium text-black/60">
+            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-xs font-medium text-black/60">
               <img
                 src="/avatar.svg"
                 alt="Xyu"
@@ -83,15 +59,8 @@ export default function Home() {
               />
               <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
               Xyu · Developer
-              <button
-                type="button"
-                onClick={toggleLang}
-                className="ml-2 rounded-full border border-black/10 bg-white/80 px-3 py-1 text-[11px] text-black/60 transition hover:bg-white"
-              >
-                {t.langToggle}
-              </button>
             </div>
-            <h1 className="text-4xl font-extrabold leading-[1.02] tracking-tight text-[#1e1c16] md:text-6xl">
+            <h1 className="text-4xl font-extrabold leading-[1.02] tracking-tight text-[#15130f] md:text-6xl">
               {t.heroTitle}
             </h1>
             <p className="max-w-xl text-base leading-relaxed text-black/60 md:text-lg">
@@ -102,7 +71,7 @@ export default function Home() {
                 href="https://github.com/Ymien"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-5 py-2.5 text-sm font-medium text-black/70 shadow-sm transition hover:bg-white"
+                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-5 py-2.5 text-sm font-medium text-black/70 shadow-sm transition hover:bg-white"
               >
                 <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
                   <path
@@ -123,13 +92,13 @@ export default function Home() {
         {/* Blog Posts Section */}
         <section id="blog" className="mt-14">
           <div className="mb-6 flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-[#1e1c16] md:text-2xl">
-              {t.sectionBlog}
+            <h3 className="text-xl font-semibold text-[#15130f] md:text-2xl">
+              {t.sectionNotes}
             </h3>
-            <div className="hidden text-sm text-black/40 md:block">Markdown · 阅读</div>
+            <div className="hidden text-sm text-black/40 md:block">Markdown</div>
           </div>
           
-          <div className="flex flex-col gap-6 rounded-[28px] border border-black/10 bg-white/60 px-6 py-8 shadow-[0_18px_60px_rgba(0,0,0,0.06)] backdrop-blur-xl md:px-10 md:py-10">
+          <div className="flex flex-col gap-6 rounded-[28px] border border-black/10 bg-white/70 px-6 py-8 shadow-[0_18px_60px_rgba(0,0,0,0.06)] backdrop-blur-xl md:px-10 md:py-10">
             {posts.map(post => (
               <article key={post.slug} className="group flex flex-col md:flex-row gap-6 md:gap-12 items-start text-left">
                 <time className="text-sm font-mono text-zinc-500 md:w-32 flex-shrink-0 md:pt-1">
@@ -155,7 +124,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-black/10 bg-[#f7f2e8]">
+      <footer className="border-t border-black/10 bg-[#fbf7ef]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-10 text-center text-sm text-black/45 md:flex-row md:px-6">
           <div>{t.footerCopyright}</div>
           <a

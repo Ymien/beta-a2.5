@@ -5,16 +5,20 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import SiteHeader from "@/components/SiteHeader";
+import { useLang } from "@/components/LangProvider";
 
 interface Message {
   id: string;
   role: "user" | "ai" | "system";
   content: string;
+  thinking?: string;
+  thinkingOpen?: boolean;
 }
 
 type ThinkingType = "auto" | "enabled" | "disabled";
 
 export default function ChatInterface() {
+  const { lang } = useLang();
   const models = useMemo(
     () => [
       { id: "doubao2.0pro", name: "Doubao Pro", note: "旗舰全能" },
@@ -29,6 +33,7 @@ export default function ChatInterface() {
   const [selectedModel, setSelectedModel] = useState(models[0]?.id ?? "doubao2.0pro");
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [thinkingType, setThinkingType] = useState<ThinkingType>("auto");
+  const [showThinking, setShowThinking] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -60,7 +65,7 @@ export default function ChatInterface() {
     setIsLoading(true);
 
     const aiMessageId = (Date.now() + 1).toString();
-    setMessages((prev) => [...prev, { id: aiMessageId, role: "ai", content: "" }]);
+    setMessages((prev) => [...prev, { id: aiMessageId, role: "ai", content: "", thinking: "", thinkingOpen: false }]);
 
     abortControllerRef.current = new AbortController();
 
@@ -113,6 +118,24 @@ export default function ChatInterface() {
               (data?.type === "response.output_text.done" &&
                 typeof data?.text === "string" &&
                 data.text);
+
+            const thinkingDelta =
+              (data?.type === "response.reasoning_text.delta" &&
+                typeof data?.delta === "string" &&
+                data.delta) ||
+              (data?.type === "response.reasoning_text.done" &&
+                typeof data?.text === "string" &&
+                data.text);
+
+            if (typeof thinkingDelta === "string" && thinkingDelta.length > 0) {
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === aiMessageId
+                    ? { ...msg, thinking: (msg.thinking || "") + thinkingDelta }
+                    : msg
+                )
+              );
+            }
 
             if (typeof deltaText === "string" && deltaText.length > 0) {
               aiText += deltaText;
@@ -233,6 +256,18 @@ export default function ChatInterface() {
 
               <button
                 type="button"
+                onClick={() => setShowThinking((v) => !v)}
+                className={`rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition ${
+                  showThinking
+                    ? "border-black/10 bg-white text-black/70"
+                    : "border-black/10 bg-white/60 text-black/60 hover:bg-white"
+                }`}
+              >
+                {lang === "zh" ? (showThinking ? "隐藏思考" : "显示思考") : showThinking ? "Hide" : "Show"}
+              </button>
+
+              <button
+                type="button"
                 onClick={() => {
                   stop();
                   setMessages([]);
@@ -269,6 +304,29 @@ export default function ChatInterface() {
                               : "border-black/10 bg-white/70 text-[#1e1c16] shadow-sm"
                           }`}
                         >
+                      {!isUser && !isSystem && showThinking && (msg.thinking || "").length > 0 && (
+                        <div className="mb-3 rounded-2xl border border-black/10 bg-black/[0.03] p-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMessages((prev) =>
+                                prev.map((m) =>
+                                  m.id === msg.id ? { ...m, thinkingOpen: !m.thinkingOpen } : m
+                                )
+                              )
+                            }
+                            className="flex w-full items-center justify-between text-xs font-medium text-black/60"
+                          >
+                            <span>{lang === "zh" ? "思考过程" : "Thinking"}</span>
+                            <span className="text-black/35">{msg.thinkingOpen ? "−" : "+"}</span>
+                          </button>
+                          {msg.thinkingOpen && (
+                            <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
+                              {msg.thinking}
+                            </div>
+                          )}
+                        </div>
+                      )}
                           {isUser || isSystem ? (
                             <div className="whitespace-pre-wrap">{msg.content}</div>
                           ) : (
