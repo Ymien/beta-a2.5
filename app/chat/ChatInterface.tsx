@@ -347,11 +347,14 @@ export default function ChatInterface() {
 
               <button
                 type="button"
-                onClick={() =>
-                  setThinkingType((v) =>
-                    v === "auto" ? "enabled" : v === "enabled" ? "disabled" : "auto"
-                  )
-                }
+                onClick={() => {
+                  setThinkingType((v) => {
+                    if (selectedModel === "glm4.7") {
+                      return v === "enabled" ? "disabled" : "enabled";
+                    }
+                    return v === "auto" ? "enabled" : v === "enabled" ? "disabled" : "auto";
+                  });
+                }}
                 className={`rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition ${
                   thinkingType === "enabled"
                     ? "border-[#0f766e]/30 bg-[#ecfeff] text-[#0f766e] hover:bg-[#cffafe]"
