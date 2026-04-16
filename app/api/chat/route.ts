@@ -1,4 +1,4 @@
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 function tryParseJson(text: string): any | null {
   try {
