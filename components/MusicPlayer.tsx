@@ -53,20 +53,32 @@ export default function MusicPlayer() {
     return `${m}:${String(r).padStart(2, "0")}`;
   };
 
-  useEffect(() => {
-    if (audioRef.current) {
+  const playFromGesture = async () => {
+    if (!audioRef.current) return;
+    try {
+      setError(null);
       audioRef.current.volume = 0.9;
-      if (isPlaying) {
-        setError(null);
-        audioRef.current.play().catch(() => {
-          setIsPlaying(false);
-          setError(lang === "zh" ? "浏览器阻止了自动播放，请点击播放按钮" : "Autoplay is blocked. Click play.");
-        });
-      } else {
-        audioRef.current.pause();
-      }
+      await audioRef.current.play();
+      setIsPlaying(true);
+    } catch (e: any) {
+      setIsPlaying(false);
+      const msg =
+        e?.name === "NotAllowedError"
+          ? lang === "zh"
+            ? "浏览器限制播放：请再次点击播放"
+            : "Playback blocked: click play again."
+          : lang === "zh"
+          ? "无法播放该音频源（可能被网络拦截）"
+          : "Failed to play this source (maybe blocked).";
+      setError(msg);
     }
-  }, [isPlaying, lang]);
+  };
+
+  const pause = () => {
+    if (!audioRef.current) return;
+    audioRef.current.pause();
+    setIsPlaying(false);
+  };
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = isMuted;
@@ -78,12 +90,7 @@ export default function MusicPlayer() {
     setCurrentTime(0);
     setDuration(0);
     audioRef.current.load();
-    if (isPlaying) {
-      audioRef.current.play().catch(() => {
-        setIsPlaying(false);
-        setError(lang === "zh" ? "无法播放该音频源" : "Failed to play this source.");
-      });
-    }
+    if (isPlaying) playFromGesture();
   }, [track?.url]);
 
   const seek = (ratio: number) => {
@@ -94,8 +101,22 @@ export default function MusicPlayer() {
     setCurrentTime(next);
   };
 
-  const nextTrack = () => setTrackIndex((i) => (i + 1) % tracks.length);
-  const prevTrack = () => setTrackIndex((i) => (i - 1 + tracks.length) % tracks.length);
+  const setTrackByIndex = async (nextIndex: number, autoplay: boolean) => {
+    const i = ((nextIndex % tracks.length) + tracks.length) % tracks.length;
+    setTrackIndex(i);
+    if (!audioRef.current) return;
+    audioRef.current.src = tracks[i].url;
+    audioRef.current.load();
+    if (autoplay) await playFromGesture();
+  };
+
+  const nextTrack = async (autoplay: boolean) => {
+    await setTrackByIndex(trackIndex + 1, autoplay);
+  };
+
+  const prevTrack = async (autoplay: boolean) => {
+    await setTrackByIndex(trackIndex - 1, autoplay);
+  };
 
   return (
     <div
@@ -143,7 +164,7 @@ export default function MusicPlayer() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={prevTrack}
+                  onClick={() => prevTrack(isPlaying)}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/70 transition hover:bg-white/[0.1] hover:text-white"
                   aria-label={lang === "zh" ? "上一首" : "Previous"}
                 >
@@ -159,7 +180,10 @@ export default function MusicPlayer() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsPlaying((v) => !v)}
+                  onClick={() => {
+                    if (isPlaying) pause();
+                    else playFromGesture();
+                  }}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#e7c7a3] text-[#15130f] transition hover:bg-[#ddb98f]"
                   aria-label={isPlaying ? (lang === "zh" ? "暂停" : "Pause") : (lang === "zh" ? "播放" : "Play")}
                 >
@@ -167,7 +191,7 @@ export default function MusicPlayer() {
                 </button>
                 <button
                   type="button"
-                  onClick={nextTrack}
+                  onClick={() => nextTrack(isPlaying)}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/70 transition hover:bg-white/[0.1] hover:text-white"
                   aria-label={lang === "zh" ? "下一首" : "Next"}
                 >
@@ -209,8 +233,9 @@ export default function MusicPlayer() {
             <audio
               ref={audioRef}
               src={track?.url}
-              preload="none"
+              preload="metadata"
               crossOrigin="anonymous"
+              playsInline
               onLoadedMetadata={() => {
                 if (!audioRef.current) return;
                 setDuration(audioRef.current.duration || 0);
@@ -219,7 +244,7 @@ export default function MusicPlayer() {
                 if (!audioRef.current) return;
                 setCurrentTime(audioRef.current.currentTime || 0);
               }}
-              onEnded={nextTrack}
+              onEnded={() => nextTrack(true)}
               onError={() => setError(lang === "zh" ? "音频加载失败（可能被网络拦截）" : "Audio failed to load (network blocked).")}
             />
           </div>

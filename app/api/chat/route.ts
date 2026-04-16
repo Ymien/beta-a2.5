@@ -110,21 +110,19 @@ export async function POST(req: Request) {
         ? "disabled"
         : normalizedThinkingType;
 
-    const thinking = { type: effectiveThinkingType };
-
     const body =
       info.endpoint === "responses"
         ? {
             model,
             stream: true,
             input: toResponsesInput(),
-            thinking,
+            ...(effectiveThinkingType === "auto" ? {} : { thinking: { type: effectiveThinkingType } }),
           }
         : {
             model,
             stream: true,
             messages: toChatMessages(),
-            thinking,
+            thinking: { type: effectiveThinkingType },
           };
 
     const response = await fetch(url, {
