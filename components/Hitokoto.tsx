@@ -51,16 +51,16 @@ export default function Hitokoto() {
   }, [lang, fallbackEn]);
 
   return (
-    <div className="w-full max-w-2xl bg-white/[0.03] border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-sm relative group overflow-hidden transition-colors hover:bg-white/[0.05]">
-      <div className="absolute -top-4 -left-4 text-white/10 group-hover:text-white/15 transition-colors">
+    <div className="w-full max-w-2xl bg-white/80 border border-black/10 rounded-3xl p-6 md:p-8 backdrop-blur-sm relative group overflow-hidden transition-colors hover:bg-white">
+      <div className="absolute -top-4 -left-4 text-black/5 group-hover:text-black/10 transition-colors">
         <Quote className="w-24 h-24" />
       </div>
       <blockquote className="relative z-10">
-        <p className="text-base md:text-lg text-white/80 font-normal leading-relaxed mb-4">
+        <p className="text-base md:text-lg text-black/75 font-normal leading-relaxed mb-4">
           “{quote.hitokoto}”
         </p>
-        <footer className="text-sm text-white/55 font-mono flex items-center justify-end">
-          <span className="w-4 h-px bg-white/25 mr-2"></span>
+        <footer className="text-sm text-black/50 font-mono flex items-center justify-end">
+          <span className="w-4 h-px bg-black/25 mr-2"></span>
           {quote.from}
         </footer>
       </blockquote>

@@ -265,11 +265,11 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f2e8] text-[#1e1c16]">
+    <div className="min-h-screen bg-[#fbf7ef] text-[#15130f]">
       <SiteHeader active="chat" />
 
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-6 md:grid-cols-[1fr_360px] md:gap-8 md:px-6 md:py-10">
-        <div className="rounded-3xl border border-black/10 bg-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.08)] backdrop-blur-xl">
+        <div className="rounded-3xl border border-black/10 bg-white/80 shadow-[0_18px_70px_rgba(0,0,0,0.08)] backdrop-blur-xl">
           <div className="flex flex-col gap-2 border-b border-black/10 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
             <div className="flex items-center gap-2">
               <div className="h-10 w-10 rounded-2xl bg-black/5 p-2 text-[#1e1c16]">
@@ -385,71 +385,65 @@ export default function ChatInterface() {
                         key={msg.id}
                         className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                       >
-                        <div
-                          className={`max-w-[92%] rounded-3xl border px-4 py-3 text-sm leading-relaxed md:max-w-[80%] ${
-                            isUser
-                              ? "border-black/10 bg-[#1e1c16] text-[#f7f2e8]"
-                              : isSystem
-                              ? "border-red-500/20 bg-red-50 text-red-700"
-                              : "border-black/10 bg-white/70 text-[#1e1c16] shadow-sm"
-                          }`}
-                        >
-                      {isUser || isSystem ? (
-                        <div className="whitespace-pre-wrap">{msg.content}</div>
-                      ) : (
-                        <div className="flex flex-col gap-3">
-                          {(msg.thinking || "").length > 0 && (
-                            <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-3">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setMessages((prev) =>
-                                    prev.map((m) =>
-                                      m.id === msg.id ? { ...m, thinkingOpen: !m.thinkingOpen } : m
+                        {isUser ? (
+                          <div className="max-w-[92%] rounded-3xl border border-black/10 bg-[#15130f] px-4 py-3 text-sm leading-relaxed text-[#fbf7ef] md:max-w-[80%]">
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                          </div>
+                        ) : isSystem ? (
+                          <div className="max-w-[92%] rounded-3xl border border-red-500/20 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-700 md:max-w-[80%]">
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
+                          </div>
+                        ) : (
+                          <div className="max-w-[92%] md:max-w-[80%]">
+                            {(msg.thinking || "").length > 0 && (
+                              <div className="mb-3 rounded-3xl border border-black/10 bg-[#f4efe6] px-4 py-3">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setMessages((prev) =>
+                                      prev.map((m) =>
+                                        m.id === msg.id ? { ...m, thinkingOpen: !m.thinkingOpen } : m
+                                      )
                                     )
-                                  )
-                                }
-                                className="flex w-full items-center justify-between text-xs font-medium text-black/60"
-                              >
-                                <span className="flex items-center gap-2">
-                                  <span>{ui.thinkingPanel}</span>
-                                  <span className="text-black/35 font-mono">
-                                    {typeof msg.thinkingMs === "number"
-                                      ? `${(msg.thinkingMs / 1000).toFixed(1)}s`
-                                      : ""}
+                                  }
+                                  className="flex w-full items-center justify-between text-xs font-medium text-black/55"
+                                >
+                                  <span className="flex items-center gap-2">
+                                    <span>{ui.thinkingPanel}</span>
+                                    <span className="text-black/35 font-mono">
+                                      {typeof msg.thinkingMs === "number"
+                                        ? `${Math.max(1, Math.round(msg.thinkingMs / 1000))}${lang === "zh" ? "秒" : "s"}`
+                                        : ""}
+                                    </span>
                                   </span>
-                                </span>
-                                <span className="text-black/35">
-                                  {msg.thinkingOpen ? ui.hideThinking : ui.showThinking}
-                                </span>
-                              </button>
-                              {msg.thinkingOpen ? (
-                                <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
-                                  {msg.thinking}
-                                </div>
-                              ) : (
-                                <div className="mt-2 text-[11px] text-black/40">
-                                  {lang === "zh"
-                                    ? "已隐藏（点击显示）"
-                                    : "Hidden (click to show)"}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                                  <span className="text-black/35">
+                                    {msg.thinkingOpen ? ui.hideThinking : ui.showThinking}
+                                  </span>
+                                </button>
+                                {msg.thinkingOpen ? (
+                                  <div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-black/60">
+                                    {msg.thinking}
+                                  </div>
+                                ) : (
+                                  <div className="mt-2 text-[11px] text-black/40">
+                                    {lang === "zh" ? "默认隐藏" : "Hidden by default"}
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
-                          <div className="rounded-2xl border border-black/10 bg-white/60 p-3">
-                            <div className="mb-2 text-[11px] font-medium tracking-widest text-black/40">
-                              {lang === "zh" ? "输出" : "ANSWER"}
-                            </div>
-                            <div className="prose prose-sm max-w-none prose-p:my-2 prose-pre:my-3 prose-pre:rounded-2xl prose-pre:border prose-pre:border-black/10 prose-pre:bg-black/90 prose-pre:text-white">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {msg.content || "..."}
-                              </ReactMarkdown>
+                            <div className="rounded-3xl border border-black/10 bg-white/85 px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.06)]">
+                              <div className="mb-2 text-[11px] font-medium tracking-widest text-black/40">
+                                {lang === "zh" ? "输出" : "ANSWER"}
+                              </div>
+                              <div className="prose prose-sm max-w-none prose-p:my-2 prose-pre:my-3 prose-pre:rounded-2xl prose-pre:border prose-pre:border-black/10 prose-pre:bg-black/95 prose-pre:text-white">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {msg.content || "..."}
+                                </ReactMarkdown>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                        </div>
+                        )}
                       </div>
                     );
                   })}

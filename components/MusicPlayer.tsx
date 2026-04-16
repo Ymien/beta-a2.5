@@ -136,14 +136,14 @@ export default function MusicPlayer() {
       }}
     >
       <div
-        className={`overflow-hidden border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-[0_20px_70px_rgba(0,0,0,0.55)] transition-all duration-300 ${
+        className={`overflow-hidden border border-black/10 bg-white/80 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.12)] transition-all duration-300 ${
           isOpen ? "w-[min(360px,calc(100vw-2.5rem))] rounded-3xl" : "w-12 rounded-full"
         }`}
       >
         <button
           type="button"
           onClick={() => setIsOpen((v) => !v)}
-          className="flex h-12 w-12 items-center justify-center text-white/80 transition hover:text-white"
+          className="flex h-12 w-12 items-center justify-center text-black/70 transition hover:text-black"
           aria-label={lang === "zh" ? "打开播放器" : "Open player"}
         >
           <Music2 className="h-5 w-5" />
@@ -153,10 +153,10 @@ export default function MusicPlayer() {
           <div className="px-4 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <div className="text-sm font-semibold text-white">
+                <div className="text-sm font-semibold text-[#15130f]">
                   {track?.title || (lang === "zh" ? "音乐" : "Music")}
                 </div>
-                <div className="text-[11px] text-white/45">
+                <div className="text-[11px] text-black/45">
                   {track?.artist || "—"}
                 </div>
               </div>
@@ -165,7 +165,7 @@ export default function MusicPlayer() {
                 <button
                   type="button"
                   onClick={() => prevTrack(isPlaying)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/70 transition hover:bg-white/[0.1] hover:text-white"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/80 text-black/60 transition hover:bg-white hover:text-black"
                   aria-label={lang === "zh" ? "上一首" : "Previous"}
                 >
                   <SkipBack className="h-4 w-4" />
@@ -173,7 +173,7 @@ export default function MusicPlayer() {
                 <button
                   type="button"
                   onClick={() => setIsMuted((v) => !v)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/70 transition hover:bg-white/[0.1] hover:text-white"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/80 text-black/60 transition hover:bg-white hover:text-black"
                   aria-label={lang === "zh" ? "静音" : "Mute"}
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -192,7 +192,7 @@ export default function MusicPlayer() {
                 <button
                   type="button"
                   onClick={() => nextTrack(isPlaying)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/70 transition hover:bg-white/[0.1] hover:text-white"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/80 text-black/60 transition hover:bg-white hover:text-black"
                   aria-label={lang === "zh" ? "下一首" : "Next"}
                 >
                   <SkipForward className="h-4 w-4" />
@@ -202,7 +202,7 @@ export default function MusicPlayer() {
 
             <button
               type="button"
-              className="mt-3 h-1.5 w-full rounded-full bg-white/10 overflow-hidden"
+              className="mt-3 h-1.5 w-full rounded-full bg-black/10 overflow-hidden"
               onClick={(e) => {
                 const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
                 const x = e.clientX - rect.left;
@@ -219,13 +219,13 @@ export default function MusicPlayer() {
               />
             </button>
 
-            <div className="mt-2 flex items-center justify-between text-[11px] text-white/45 font-mono">
+            <div className="mt-2 flex items-center justify-between text-[11px] text-black/50 font-mono">
               <span>{formatTime(currentTime)}</span>
               <span>−{formatTime(Math.max(0, duration - currentTime))}</span>
             </div>
 
             {error && (
-              <div className="mt-3 text-[11px] text-[#fecaca]">
+              <div className="mt-3 text-[11px] text-[#991b1b]">
                 {error}
               </div>
             )}
