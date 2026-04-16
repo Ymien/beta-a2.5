@@ -448,7 +448,7 @@ export default function ChatInterface() {
                                   {(msg.thinking || "").trim().length > 0
                                     ? msg.thinking
                                     : lang === "zh"
-                                    ? "模型未返回思考内容"
+                                    ? "该模型未返回可展示的思考内容"
                                     : "No reasoning content returned by the model."}
                                 </div>
                               )}
