@@ -14,7 +14,7 @@ const LangContext = createContext<LangContextValue | null>(null);
 
 export function LangProvider(props: { children: React.ReactNode }) {
   const { children } = props;
-  const [lang, setLangState] = useState<Lang>("zh");
+  const [lang, setLangState] = useState<Lang>("en");
 
   useEffect(() => {
     const stored = window.localStorage.getItem("xyu_lang");
@@ -38,4 +38,3 @@ export function useLang() {
   if (!ctx) throw new Error("useLang must be used within LangProvider");
   return ctx;
 }
-

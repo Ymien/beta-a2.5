@@ -19,6 +19,45 @@ type ThinkingType = "auto" | "enabled" | "disabled";
 
 export default function ChatInterface() {
   const { lang } = useLang();
+  const ui = useMemo(
+    () =>
+      lang === "zh"
+        ? {
+            title: "对话",
+            subtitle: "多模型 · 流式输出",
+            chooseModel: "选择模型",
+            thinking: "思考",
+            clear: "清空",
+            showThinking: "显示思考",
+            hideThinking: "隐藏思考",
+            thinkingPanel: "思考过程",
+            startHint: "选择模型并输入内容开始对话",
+            placeholder: "消息…（Enter 发送，Shift+Enter 换行）",
+            stop: "停止",
+            send: "发送",
+            modeAuto: "AUTO",
+            modeOn: "ON",
+            modeOff: "OFF",
+          }
+        : {
+            title: "Dialog",
+            subtitle: "Multi-model · Streaming",
+            chooseModel: "Choose model",
+            thinking: "Thinking",
+            clear: "Clear",
+            showThinking: "Show reasoning",
+            hideThinking: "Hide reasoning",
+            thinkingPanel: "Reasoning",
+            startHint: "Pick a model, then write.",
+            placeholder: "Message… (Enter to send, Shift+Enter for a new line)",
+            stop: "Stop",
+            send: "Send",
+            modeAuto: "AUTO",
+            modeOn: "ON",
+            modeOff: "OFF",
+          },
+    [lang]
+  );
   const models = useMemo(
     () => [
       { id: "doubao2.0pro", name: "Doubao Pro", note: "旗舰全能" },
@@ -181,8 +220,8 @@ export default function ChatInterface() {
                 </span>
               </div>
               <div className="flex flex-col leading-tight">
-                <div className="text-base font-semibold">AI 聊天</div>
-                <div className="text-xs text-black/50">多模型 · 流式输出</div>
+                <div className="text-base font-semibold">{ui.title}</div>
+                <div className="text-xs text-black/50">{ui.subtitle}</div>
               </div>
             </div>
 
@@ -196,7 +235,7 @@ export default function ChatInterface() {
                   aria-expanded={isModelOpen}
                 >
                   <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
-                  {models.find((m) => m.id === selectedModel)?.name ?? "选择模型"}
+                  {models.find((m) => m.id === selectedModel)?.name ?? ui.chooseModel}
                   <span className="text-[#b45309]/70">▾</span>
                 </button>
                 <div
@@ -251,7 +290,12 @@ export default function ChatInterface() {
                     : "border-black/10 bg-white/60 text-black/60 hover:bg-white"
                 }`}
               >
-                思考 {thinkingType === "auto" ? "AUTO" : thinkingType === "enabled" ? "ON" : "OFF"}
+                {ui.thinking}{" "}
+                {thinkingType === "auto"
+                  ? ui.modeAuto
+                  : thinkingType === "enabled"
+                  ? ui.modeOn
+                  : ui.modeOff}
               </button>
 
               <button
@@ -263,7 +307,7 @@ export default function ChatInterface() {
                     : "border-black/10 bg-white/60 text-black/60 hover:bg-white"
                 }`}
               >
-                {lang === "zh" ? (showThinking ? "隐藏思考" : "显示思考") : showThinking ? "Hide" : "Show"}
+                {showThinking ? ui.hideThinking : ui.showThinking}
               </button>
 
               <button
@@ -274,7 +318,7 @@ export default function ChatInterface() {
                 }}
                 className="rounded-full border border-black/10 bg-white/60 px-4 py-2 text-sm font-medium text-black/60 shadow-sm transition hover:bg-white"
               >
-                清空
+                {ui.clear}
               </button>
             </div>
           </div>
@@ -283,7 +327,7 @@ export default function ChatInterface() {
             <div className="flex-1 overflow-y-auto px-4 py-5 md:px-6">
               {messages.length === 0 ? (
                 <div className="mx-auto mt-14 max-w-md text-center text-sm text-black/40">
-                  选择模型并输入内容开始对话
+                  {ui.startHint}
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
@@ -317,7 +361,7 @@ export default function ChatInterface() {
                             }
                             className="flex w-full items-center justify-between text-xs font-medium text-black/60"
                           >
-                            <span>{lang === "zh" ? "思考过程" : "Thinking"}</span>
+                            <span>{ui.thinkingPanel}</span>
                             <span className="text-black/35">{msg.thinkingOpen ? "−" : "+"}</span>
                           </button>
                           {msg.thinkingOpen && (
@@ -358,7 +402,7 @@ export default function ChatInterface() {
                       }
                     }}
                     rows={2}
-                    placeholder="消息…（Enter 发送，Shift+Enter 换行）"
+                    placeholder={ui.placeholder}
                     className="w-full resize-none rounded-2xl border border-black/10 bg-white/70 px-4 py-3 text-sm text-[#1e1c16] outline-none transition focus:border-[#d97706]/40 focus:ring-2 focus:ring-[#d97706]/20"
                     disabled={isLoading}
                   />
@@ -379,7 +423,7 @@ export default function ChatInterface() {
                     onClick={stop}
                     className="h-11 rounded-2xl border border-red-500/20 bg-red-50 px-5 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-100"
                   >
-                    停止
+                    {ui.stop}
                   </button>
                 ) : (
                   <button
@@ -387,7 +431,7 @@ export default function ChatInterface() {
                     disabled={!input.trim()}
                     className="h-11 rounded-2xl bg-[#e7c7a3] px-6 text-sm font-medium text-[#1e1c16] shadow-sm transition hover:bg-[#ddb98f] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    发送
+                    {ui.send}
                   </button>
                 )}
               </form>

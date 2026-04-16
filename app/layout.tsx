@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Xyu",
-  description: "Xyu 的个人博客与入口站",
+  title: "Blank Space",
+  description: "A quiet place for notes, experiments, and small dialogs.",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },

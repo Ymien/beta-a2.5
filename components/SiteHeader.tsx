@@ -20,17 +20,17 @@ export default function SiteHeader(props: { active?: string }) {
     () =>
       lang === "zh"
         ? [
-            { href: "/", label: "自由.", desc: "入口" },
-            { href: "/blog/react-server-components", label: "随想", desc: "文章与片段" },
-            { href: "/chat", label: "对话", desc: "AI · 多模型" },
+            { href: "/", label: "留白", desc: "入口" },
+            { href: "/blog/react-server-components", label: "随想", desc: "短文与片段" },
+            { href: "/chat", label: "对话", desc: "多模型 · 思考" },
             { href: "/popup", label: "游乐场 · PopupMorph", desc: "弹窗形状动画" },
             { href: "/tetris", label: "游乐场 · Tetris", desc: "霓虹方块" },
             { href: "/game", label: "游乐场 · Match", desc: "记忆配对" },
           ]
         : [
-            { href: "/", label: "Free.", desc: "Start here" },
-            { href: "/blog/react-server-components", label: "Thoughts", desc: "Notes & essays" },
-            { href: "/chat", label: "Dialog", desc: "AI · Multi-model" },
+            { href: "/", label: "Blank Space", desc: "Start here" },
+            { href: "/blog/react-server-components", label: "Notes", desc: "Small essays & fragments" },
+            { href: "/chat", label: "Dialog", desc: "Multi-model · Thinking" },
             { href: "/popup", label: "Playground · PopupMorph", desc: "Popup shape animator" },
             { href: "/tetris", label: "Playground · Tetris", desc: "Neon blocks" },
             { href: "/game", label: "Playground · Match", desc: "Memory game" },
@@ -47,7 +47,7 @@ export default function SiteHeader(props: { active?: string }) {
           </div>
           <div className="flex flex-col leading-none">
             <span className="text-[15px] font-semibold tracking-tight text-[#15130f]">
-              {lang === "zh" ? "自由." : "Free."}
+              {lang === "zh" ? "留白" : "Blank Space"}
             </span>
             <span className="text-[11px] text-black/40">Xyu</span>
           </div>

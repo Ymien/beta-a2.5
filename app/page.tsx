@@ -23,22 +23,22 @@ export default function Home() {
     () =>
       lang === "zh"
         ? {
-            heroTitle: "自由.",
+            heroTitle: "留白",
             heroSubtitle: "随想 · 随心",
             heroDesc:
-              "一块随手写下的地方：想到什么写什么，想做什么就做什么。右上角目录是入口。",
+              "把一些想法留在这里。不是宣言，也不赶进度。右上角目录是入口。",
             sectionNotes: "随想",
             readMore: "打开阅读 →",
-            footerCopyright: "© 2026 Xyu · 自由.",
+            footerCopyright: "© 2026 Xyu · 留白",
           }
         : {
-            heroTitle: "Free.",
-            heroSubtitle: "Thoughts · By heart",
+            heroTitle: "Blank Space",
+            heroSubtitle: "Notes · Drift · By heart",
             heroDesc:
-              "A place for wandering thoughts and impulsive making. Use the menu in the top-right to jump around.",
-            sectionNotes: "Thoughts",
+              "A small page to keep what passes through — a sentence, a sketch, a thought that refuses to leave.",
+            sectionNotes: "Notes",
             readMore: "Read →",
-            footerCopyright: "© 2026 Xyu · Free.",
+            footerCopyright: "© 2026 Xyu · Blank Space",
           },
     [lang]
   );
