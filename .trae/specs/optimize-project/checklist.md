@@ -1,0 +1,18 @@
+- [ ] Tetris 游戏循环使用 setInterval 模式，moveDown 引用变化不触发循环重建
+- [ ] Tetris hardDrop 时序正确：piece 位置更新后再 merge，无竞态条件
+- [ ] Game handleCardClick 无嵌套 setState 反模式，所有状态更新在同一渲染周期
+- [ ] ChatInterface 无 inputValueRef/isTypingRef 同步模式，使用 useCallback 依赖项
+- [ ] ChatInterface 快速连续发送消息无空消息或重复发送
+- [ ] Game 最佳步数通过 localStorage 持久化并在 UI 显示
+- [ ] Tetris 最高分通过 localStorage 持久化并在 UI 显示
+- [ ] 全局 Error Boundary 包裹 children，子组件崩溃时显示恢复界面
+- [ ] /chat、/game、/tetris 路由使用 dynamic import 懒加载
+- [ ] 路由 metadata 导出在 Server Component 层，不与 "use client" 冲突
+- [ ] Tetris 面板按行 memoization，方块下落时仅重渲染变化行
+- [ ] TypeScript 类型检查零错误
+- [ ] ESLint 检查零错误
+- [ ] next build 构建成功
+- [ ] Chat 核心流程正常：发送消息 → AI 回复 → 滚动到底部
+- [ ] Game 核心流程正常：翻牌 → 匹配 → 胜利弹窗
+- [ ] Tetris 核心流程正常：移动/旋转/下落/硬降/消行/游戏结束
+- [ ] Git 提交完成

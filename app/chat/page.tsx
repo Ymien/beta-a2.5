@@ -1,8 +1,9 @@
-import ChatInterface from "./ChatInterface";
+import ChatInterface from "./ChatInterfaceLoader";
 
 export const metadata = {
   title: "Synapse AI | Cyberpunk Virtual Assistant",
-  description: "Experience the next-gen AI LLM interface in a cyberpunk terminal style.",
+  description:
+    "Experience the next-gen AI LLM interface in a cyberpunk terminal style.",
 };
 
 export default function ChatPage() {

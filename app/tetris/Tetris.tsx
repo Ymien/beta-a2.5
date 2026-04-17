@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import Link from "next/link";
 
 // --- 俄罗斯方块常量与游戏逻辑配置 ---
 const COLS = 10; // 游戏区域总列数
 const ROWS = 20; // 游戏区域总行数
-const BLOCK_SIZE = 30; // 单个方块的像素大小估算值
 
 // 方块的形状定义，0代表空白，数字代表方块种类及颜色索引
 const SHAPES = [
@@ -32,6 +31,60 @@ const TAILWIND_GLOWS = [
   "shadow-[0_0_10px_#ff0000] bg-[#ff0000]/80 border-[#ff0000]"  // Z - 红色
 ];
 
+// 得分权重数组：0行, 1行, 2行, 3行, 4行
+const SCORE_TABLE = [0, 100, 300, 500, 800];
+
+// Memoized cell component for Tetris grid (defined outside component)
+const TetrisCell = memo(({ value }: { value: number }) => (
+  <div 
+    className={`w-full h-full border border-white/5 rounded-sm transition-all duration-100 ${value ? TAILWIND_GLOWS[value] : 'bg-white/5'}`}
+  />
+));
+TetrisCell.displayName = "TetrisCell";
+
+const TetrisRow = memo(({ row, y }: { row: number[]; y: number }) => (
+  <>
+    {row.map((cell, x) => (
+      <TetrisCell key={`${x}-${y}`} value={cell} />
+    ))}
+  </>
+));
+TetrisRow.displayName = "TetrisRow";
+
+const computeDisplayBoard = (board: number[][], piece: { shape: number[][]; x: number; y: number }) => {
+  const display = board.map(row => [...row]);
+  piece.shape.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value !== 0) {
+        const boardY = piece.y + y;
+        const boardX = piece.x + x;
+        if (boardY >= 0 && boardY < ROWS && boardX >= 0 && boardX < COLS) {
+          display[boardY][boardX] = value;
+        }
+      }
+    });
+  });
+  return display;
+};
+
+// Memoized next piece preview
+const NextPiecePreview = memo(({ shape }: { shape: number[][] }) => (
+  <div className="flex justify-center items-center h-24">
+    <div 
+      className="grid gap-[1px]"
+      style={{ 
+        gridTemplateColumns: `repeat(${shape[0]?.length || 4}, 20px)`,
+        gridTemplateRows: `repeat(${shape?.length || 4}, 20px)`
+      }}
+    >
+      {shape.map((row, y) => row.map((cell, x) => (
+        <div key={`next-${x}-${y}`} className={`w-5 h-5 rounded-sm ${cell ? TAILWIND_GLOWS[cell] : 'transparent'}`} />
+      )))}
+    </div>
+  </div>
+));
+NextPiecePreview.displayName = "NextPiecePreview";
+
 // 辅助函数：初始化一个 20x10 的全0二维数组作为空游戏面板
 const createEmptyBoard = () => Array.from({ length: ROWS }, () => Array(COLS).fill(0));
 
@@ -46,25 +99,87 @@ const randomPiece = () => {
   };
 };
 
+// 核心逻辑：碰撞检测，检查目标位置是否超出边界或与已存在的方块重叠
+const isCollision = (pShape: number[][], pX: number, pY: number, currentBoard: number[][]) => {
+  for (let y = 0; y < pShape.length; y++) {
+    for (let x = 0; x < pShape[y].length; x++) {
+      if (pShape[y][x] !== 0) {
+        const newX = pX + x;
+        const newY = pY + y;
+        if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && currentBoard[newY][newX] !== 0)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
+
 export default function Tetris() {
   // --- 状态定义 ---
-  const [board, setBoard] = useState<number[][]>(createEmptyBoard()); // 游戏面板的状态（已固定的方块）
-  const [piece, setPiece] = useState(randomPiece()); // 当前正在下落的方块
-  const [nextPiece, setNextPiece] = useState(randomPiece()); // 预览中的下一个方块
-  const [gameOver, setGameOver] = useState(false); // 游戏是否结束的标志位
-  const [isPaused, setIsPaused] = useState(false); // 游戏是否暂停的标志位
-  const [score, setScore] = useState(0); // 当前得分
-  const [level, setLevel] = useState(1); // 当前等级
-  const [lines, setLines] = useState(0); // 累计消除的行数
+  const [board, setBoard] = useState<number[][]>(createEmptyBoard());
+  const [piece, setPiece] = useState(randomPiece());
+  const [nextPiece, setNextPiece] = useState(randomPiece());
+  const [gameOver, setGameOver] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [score, setScore] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [lines, setLines] = useState(0);
+  const [highScore, setHighScore] = useState(0);
   
-  // 使用 useRef 记录 requestAnimationFrame 的 ID 和上一次渲染时间，用于平滑游戏循环
-  const requestRef = useRef<number>(0);
-  const lastTimeRef = useRef<number>(0);
+  // 使用 ref 保存最新状态，解决游戏循环和键盘事件中的 stale closure 问题
+  const boardRef = useRef(board);
+  const pieceRef = useRef(piece);
+  const nextPieceRef = useRef(nextPiece);
+  const linesRef = useRef(lines);
+  const levelRef = useRef(level);
+  const gameOverRef = useRef(gameOver);
+  const isPausedRef = useRef(isPaused);
+  const scoreRef = useRef(score);
+  const highScoreRef = useRef(highScore);
+
+  boardRef.current = board;
+  pieceRef.current = piece;
+  nextPieceRef.current = nextPiece;
+  linesRef.current = lines;
+  levelRef.current = level;
+  gameOverRef.current = gameOver;
+  isPausedRef.current = isPaused;
+  scoreRef.current = score;
+  highScoreRef.current = highScore;
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const displayBoard = useMemo(() => computeDisplayBoard(board, piece), [board, piece]);
+
   // 根据等级计算下落间隔，最高速度限制为 100ms
   const dropInterval = Math.max(100, 1000 - (level - 1) * 100);
+  const dropIntervalRef = useRef(dropInterval);
+  dropIntervalRef.current = dropInterval;
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("neon-tetris-highscore");
+      if (stored !== null) {
+        const val = Number(stored);
+        if (!isNaN(val)) {
+          setHighScore(val);
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (gameOver && score > highScore) {
+      setHighScore(score);
+      try {
+        localStorage.setItem("neon-tetris-highscore", String(score));
+      } catch {}
+    }
+  }, [gameOver, score, highScore]);
 
   // 初始化/重置游戏状态
-  const resetGame = () => {
+  const resetGame = useCallback(() => {
     setBoard(createEmptyBoard());
     setPiece(randomPiece());
     setNextPiece(randomPiece());
@@ -73,31 +188,21 @@ export default function Tetris() {
     setLines(0);
     setGameOver(false);
     setIsPaused(false);
-  };
-
-  // 核心逻辑：碰撞检测，检查目标位置是否超出边界或与已存在的方块重叠
-  const isCollision = (pShape: number[][], pX: number, pY: number, currentBoard: number[][]) => {
-    for (let y = 0; y < pShape.length; y++) {
-      for (let x = 0; x < pShape[y].length; x++) {
-        if (pShape[y][x] !== 0) {
-          const newX = pX + x;
-          const newY = pY + y;
-          if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && currentBoard[newY][newX] !== 0)) {
-            return true; // 发生碰撞
-          }
-        }
-      }
-    }
-    return false; // 无碰撞
-  };
+  }, []);
 
   // 核心逻辑：将当前下落到底部的方块合并到静态面板（board）中
-  const mergePieceToBoard = () => {
-    const newBoard = board.map(row => [...row]);
-    piece.shape.forEach((row, y) => {
+  const mergePieceToBoard = useCallback(() => {
+    const currentBoard = boardRef.current;
+    const currentPiece = pieceRef.current;
+    const currentNextPiece = nextPieceRef.current;
+    const currentLines = linesRef.current;
+    const currentLevel = levelRef.current;
+
+    const newBoard = currentBoard.map(row => [...row]);
+    currentPiece.shape.forEach((row, y) => {
       row.forEach((value, x) => {
-        if (value !== 0 && piece.y + y >= 0) {
-          newBoard[piece.y + y][piece.x + x] = value;
+        if (value !== 0 && currentPiece.y + y >= 0) {
+          newBoard[currentPiece.y + y][currentPiece.x + x] = value;
         }
       });
     });
@@ -106,8 +211,8 @@ export default function Tetris() {
     let linesCleared = 0;
     for (let y = ROWS - 1; y >= 0; y--) {
       if (newBoard[y].every(cell => cell !== 0)) {
-        newBoard.splice(y, 1); // 移除填满的行
-        newBoard.unshift(Array(COLS).fill(0)); // 顶部补充新的空行
+        newBoard.splice(y, 1);
+        newBoard.unshift(Array(COLS).fill(0));
         linesCleared++;
         y++; // 由于移除了当前行，需要重新检查当前索引位置
       }
@@ -115,17 +220,16 @@ export default function Tetris() {
 
     // 消除行后的得分和等级计算
     if (linesCleared > 0) {
-      const newLines = lines + linesCleared;
+      const newLines = currentLines + linesCleared;
       setLines(newLines);
-      // 得分权重数组：0行, 1行, 2行, 3行, 4行
-      setScore(s => s + [0, 100, 300, 500, 800][linesCleared] * level);
-      setLevel(Math.floor(newLines / 10) + 1); // 每 10 行升一级
+      setScore(s => s + SCORE_TABLE[linesCleared] * currentLevel);
+      setLevel(Math.floor(newLines / 10) + 1);
     }
 
     setBoard(newBoard);
     
     // 生成下一个方块
-    const newP = nextPiece;
+    const newP = currentNextPiece;
     setNextPiece(randomPiece());
     
     // 如果新方块在初始位置就发生碰撞，说明堆满了，游戏结束
@@ -134,72 +238,81 @@ export default function Tetris() {
     } else {
       setPiece(newP);
     }
-  };
+  }, []);
 
-  // --- 操作与控制逻辑 ---
   // 向下移动方块
   const moveDown = useCallback(() => {
-    if (!isCollision(piece.shape, piece.x, piece.y + 1, board)) {
+    const p = pieceRef.current;
+    const b = boardRef.current;
+    if (!isCollision(p.shape, p.x, p.y + 1, b)) {
       setPiece(prev => ({ ...prev, y: prev.y + 1 }));
     } else {
-      mergePieceToBoard(); // 如果向下碰撞，则合并到面板
+      mergePieceToBoard();
     }
-  }, [piece, board]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mergePieceToBoard reads from refs
+  }, []);
 
   // 水平移动方块（dir: -1 左移，1 右移）
-  const moveHorizontal = (dir: number) => {
-    if (!isCollision(piece.shape, piece.x + dir, piece.y, board)) {
+  const moveHorizontal = useCallback((dir: number) => {
+    const p = pieceRef.current;
+    const b = boardRef.current;
+    if (!isCollision(p.shape, p.x + dir, p.y, b)) {
       setPiece(prev => ({ ...prev, x: prev.x + dir }));
     }
-  };
+  }, []);
 
   // 旋转方块
-  const rotate = () => {
-    // 矩阵顺时针旋转90度
-    const rotated = piece.shape[0].map((_, index) => 
-      piece.shape.map(row => row[index]).reverse()
+  const rotate = useCallback(() => {
+    const p = pieceRef.current;
+    const b = boardRef.current;
+    const rotated = p.shape[0].map((_: number, index: number) => 
+      p.shape.map(row => row[index]).reverse()
     );
-    // 只有在旋转后不发生碰撞时才应用旋转
-    if (!isCollision(rotated, piece.x, piece.y, board)) {
+    if (!isCollision(rotated, p.x, p.y, b)) {
       setPiece(prev => ({ ...prev, shape: rotated }));
     }
-  };
+  }, []);
 
-  // 硬降落（瞬间落到底部）
-  const hardDrop = () => {
-    let newY = piece.y;
-    while (!isCollision(piece.shape, piece.x, newY + 1, board)) {
+  // 硬降落（瞬间落到底部并合并）
+  const hardDrop = useCallback(() => {
+    const p = pieceRef.current;
+    const b = boardRef.current;
+    let newY = p.y;
+    while (!isCollision(p.shape, p.x, newY + 1, b)) {
       newY++;
     }
-    setPiece(prev => ({ ...prev, y: newY }));
-    // 下一次 game tick 会处理合并
-  };
+    // Update piece position and immediately merge
+    const droppedPiece = { ...p, y: newY };
+    pieceRef.current = droppedPiece;
+    setPiece(droppedPiece);
+    mergePieceToBoard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mergePieceToBoard reads from refs
+  }, []);
 
   // --- 游戏主循环 ---
-  const gameLoop = useCallback((time: number) => {
-    if (gameOver || isPaused) return;
-
-    if (time - lastTimeRef.current > dropInterval) {
-      moveDown();
-      lastTimeRef.current = time;
-    }
-    requestRef.current = requestAnimationFrame(gameLoop);
-  }, [moveDown, dropInterval, gameOver, isPaused]);
-
   useEffect(() => {
-    requestRef.current = requestAnimationFrame(gameLoop);
-    return () => cancelAnimationFrame(requestRef.current); // 组件卸载时清理定时器
-  }, [gameLoop]);
+    if (!gameOver && !isPaused) {
+      intervalRef.current = setInterval(() => {
+        moveDown();
+      }, dropIntervalRef.current);
+    }
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- moveDown reads from refs via interval
+  }, [gameOver, isPaused]);
 
   // --- 键盘事件监听 ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 阻止方向键和空格键的默认滚动行为
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
         e.preventDefault();
       }
       
-      if (gameOver || isPaused) return;
+      if (gameOverRef.current || isPausedRef.current) return;
       
       switch(e.key) {
         case "ArrowLeft": moveHorizontal(-1); break;
@@ -211,16 +324,10 @@ export default function Tetris() {
     };
     window.addEventListener("keydown", handleKeyDown, { passive: false });
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [piece, board, gameOver, isPaused, moveDown]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handlers read from refs
+  }, []);
 
-  // --- UI 渲染辅助函数 ---
-  // 渲染游戏网格中的单个小方格
-  const renderCell = (value: number, key: string, extraClasses = "") => (
-    <div 
-      key={key} 
-      className={`w-full h-full border border-white/5 rounded-sm transition-all duration-100 ${value ? TAILWIND_GLOWS[value] : 'bg-white/5'} ${extraClasses}`}
-    />
-  );
+  // --- UI渲染辅助 --- (memo components defined above)
 
   return (
     <div className="min-h-screen bg-black font-mono flex flex-col items-center py-8 relative overflow-hidden text-cyan-400">
@@ -254,19 +361,9 @@ export default function Tetris() {
               height: `${ROWS * 24}px`
             }}
           >
-            {board.map((row, y) => row.map((cell, x) => {
-              // Overlay current falling piece
-              let displayVal = cell;
-              if (
-                piece.shape &&
-                y >= piece.y && y < piece.y + piece.shape.length &&
-                x >= piece.x && x < piece.x + piece.shape[0].length &&
-                piece.shape[y - piece.y][x - piece.x] !== 0
-              ) {
-                displayVal = piece.shape[y - piece.y][x - piece.x];
-              }
-              return renderCell(displayVal, `${x}-${y}`);
-            }))}
+            {displayBoard.map((row, y) => (
+              <TetrisRow key={y} row={row} y={y} />
+            ))}
           </div>
 
           {/* Game Over Overlay */}
@@ -289,19 +386,7 @@ export default function Tetris() {
           {/* Next Piece */}
           <div className="bg-white/5 border border-white/10 rounded-xl p-4 backdrop-blur-md shadow-[0_0_20px_rgba(0,0,0,0.5)]">
             <h3 className="text-xs uppercase text-zinc-400 mb-3 tracking-widest">Next Sequence</h3>
-            <div className="flex justify-center items-center h-24">
-              <div 
-                className="grid gap-[1px]"
-                style={{ 
-                  gridTemplateColumns: `repeat(${nextPiece.shape[0]?.length || 4}, 20px)`,
-                  gridTemplateRows: `repeat(${nextPiece.shape?.length || 4}, 20px)`
-                }}
-              >
-                {nextPiece.shape.map((row, y) => row.map((cell, x) => (
-                  <div key={`next-${x}-${y}`} className={`w-5 h-5 rounded-sm ${cell ? TAILWIND_GLOWS[cell] : 'transparent'}`} />
-                )))}
-              </div>
-            </div>
+            <NextPiecePreview shape={nextPiece.shape} />
           </div>
 
           {/* Stats */}
@@ -309,6 +394,10 @@ export default function Tetris() {
             <div>
               <div className="text-xs uppercase text-zinc-400 tracking-widest">Score</div>
               <div className="text-2xl font-bold text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]">{score}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase text-zinc-400 tracking-widest">High Score</div>
+              <div className="text-xl font-bold text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]">{highScore}</div>
             </div>
             <div>
               <div className="text-xs uppercase text-zinc-400 tracking-widest">Level</div>

@@ -1,48 +1,116 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
+
+type Color = "fuchsia" | "cyan" | "purple";
+
+const gradientClasses: Record<Color, string> = {
+  fuchsia: "from-fuchsia-500 to-purple-500",
+  cyan: "from-cyan-400 to-blue-500",
+  purple: "from-purple-500 to-pink-500",
+};
+
+const tagClasses: Record<Color, string> = {
+  fuchsia: "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20",
+  cyan: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  purple: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+};
+
+const borderHoverClasses: Record<Color, string> = {
+  fuchsia: "border-fuchsia-500/20 hover:border-fuchsia-500/60 hover:shadow-[0_15px_40px_-10px_rgba(192,38,211,0.3)]",
+  cyan: "border-cyan-500/20 hover:border-cyan-500/60 hover:shadow-[0_15px_40px_-10px_rgba(34,211,238,0.3)]",
+  purple: "border-purple-500/20 hover:border-purple-500/60 hover:shadow-[0_15px_40px_-10px_rgba(168,85,247,0.3)]",
+};
+
+const btnHoverClasses: Record<Color, string> = {
+  fuchsia: "hover:bg-fuchsia-500 hover:border-fuchsia-500 text-white",
+  cyan: "hover:bg-cyan-500 hover:border-cyan-500 text-black",
+  purple: "hover:bg-purple-500 hover:border-purple-500 text-white",
+};
+
+const content = {
+  zh: {
+    langToggle: "English",
+    greeting: "Hello, World! 欢迎来到我的赛博朋克极客主页。",
+    aboutMeTitle: "关于我",
+    aboutMeDesc: "我是一名热衷于构建具有极致交互和视觉体验的现代 Web 开发者。在这里，你可以体验我使用 Next.js 和 Tailwind CSS 构建的创意小游戏和 AI 交互原型。所有的项目都经过精心设计，追求卓越的性能与极致的赛博朋克美学。",
+    projectsTitle: "项目橱窗",
+    cyberMatchTitle: "🎮 Cyber Match",
+    cyberMatchDesc: "这是一款赛博朋克风格的记忆配对小游戏。网格中隐藏着成对的神秘符号。\n• 玩法：点击翻开卡片。如果连续两张图案相同则匹配成功并闪烁霓虹光芒。\n• 目标：找出所有匹配的卡片完成系统破解！",
+    neonTetrisTitle: "🎮 Neon Tetris",
+    neonTetrisDesc: "带有动态霓虹发光特效的经典俄罗斯方块游戏，结合了毛玻璃面板与赛博朋克光影。\n• 操作：使用 [←][→] 左右移动，[↑] 旋转，[↓] 加速下落，[空格键] 瞬间降落。\n• 目标：紧密拼接消除满行以获取更高分数！",
+    synapseAiTitle: "🤖 Synapse AI",
+    synapseAiDesc: "纯净版前端大模型聊天交互界面体验。\n• 特性：拥有类似终端指令风格的 UI 设计，展示了沉浸式的 AI 思考动画和流畅的聊天信息流呈现。\n• 目标：体验下一代 AI 交互的前端视觉范式。",
+    btnPlay: "TRY IT OUT",
+  },
+  en: {
+    langToggle: "中文",
+    greeting: "Hello, World! Welcome to my Cyberpunk Geek Portfolio.",
+    aboutMeTitle: "About Me",
+    aboutMeDesc: "I am a modern Web Developer passionate about building extreme interactive and visual experiences. Here, you can experience creative mini-games and AI interaction prototypes built with Next.js and Tailwind CSS. All projects are meticulously designed for outstanding performance and extreme cyberpunk aesthetics.",
+    projectsTitle: "Projects Showcase",
+    cyberMatchTitle: "🎮 Cyber Match",
+    cyberMatchDesc: "A cyberpunk-themed memory card game hiding pairs of mysterious neon symbols.\n• How to play: Click to flip cards. Matching consecutive cards will trigger a neon glow.\n• Goal: Find all matching pairs to hack the system!",
+    neonTetrisTitle: "🎮 Neon Tetris",
+    neonTetrisDesc: "Classic Tetris featuring dynamic neon glow effects, glassmorphism panels, and a cyberpunk atmosphere.\n• Controls: Use arrow keys to move and rotate, down arrow to accelerate, and spacebar to hard drop.\n• Goal: Arrange blocks to fill rows and score points!",
+    synapseAiTitle: "🤖 Synapse AI",
+    synapseAiDesc: "A pure frontend LLM chat interface prototype.\n• Features: Terminal-style UI design, immersive AI thinking animations, and fluid chat message streams.\n• Goal: Experience the next-generation frontend visual paradigm for AI interactions.",
+    btnPlay: "TRY IT OUT",
+  }
+};
+
+type ContentKey = keyof typeof content;
+type Lang = "zh" | "en";
+
+// Memoized project card component
+const ProjectCard = memo(({
+  title,
+  description,
+  href,
+  color,
+  tag,
+  btnText,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  color: Color;
+  tag: string;
+  btnText: string;
+}) => (
+  <div className={`group relative bg-zinc-900/40 border ${borderHoverClasses[color]} rounded-2xl p-6 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:-translate-y-2`}>
+    <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${gradientClasses[color]} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}></div>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold text-white group-hover:text-fuchsia-400 transition-colors">{title}</h3>
+        <span className={`px-2 py-1 text-[10px] uppercase tracking-widest border rounded ${tagClasses[color]}`}>{tag}</span>
+      </div>
+      <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line mb-8">
+        {description}
+      </p>
+    </div>
+    <Link
+      href={href}
+      className={`w-full py-3 px-4 bg-white/5 border border-white/10 ${btnHoverClasses[color]} text-sm font-bold tracking-widest uppercase rounded-xl transition-all flex items-center justify-center gap-2 group/btn`}
+    >
+      {btnText}
+      <svg className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+    </Link>
+  </div>
+));
+ProjectCard.displayName = "ProjectCard";
 
 export default function Home() {
-  const [lang, setLang] = useState<"zh" | "en">("zh");
+  const [lang, setLang] = useState<Lang>("zh");
   const [typedText, setTypedText] = useState("");
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const toggleLang = () => {
-    setLang(lang === "zh" ? "en" : "zh");
-  };
+  const toggleLang = useCallback(() => {
+    setLang(prevLang => prevLang === "zh" ? "en" : "zh");
+  }, []);
 
-  const content = {
-    zh: {
-      langToggle: "English",
-      greeting: "Hello, World! 欢迎来到我的赛博朋克极客主页。",
-      aboutMeTitle: "关于我",
-      aboutMeDesc: "我是一名热衷于构建具有极致交互和视觉体验的现代 Web 开发者。在这里，你可以体验我使用 Next.js 和 Tailwind CSS 构建的创意小游戏和 AI 交互原型。所有的项目都经过精心设计，追求卓越的性能与极致的赛博朋克美学。",
-      projectsTitle: "项目橱窗",
-      cyberMatchTitle: "🎮 Cyber Match",
-      cyberMatchDesc: "这是一款赛博朋克风格的记忆配对小游戏。网格中隐藏着成对的神秘符号。\n• 玩法：点击翻开卡片。如果连续两张图案相同则匹配成功并闪烁霓虹光芒。\n• 目标：找出所有匹配的卡片完成系统破解！",
-      neonTetrisTitle: "🎮 Neon Tetris",
-      neonTetrisDesc: "带有动态霓虹发光特效的经典俄罗斯方块游戏，结合了毛玻璃面板与赛博朋克光影。\n• 操作：使用 [←][→] 左右移动，[↑] 旋转，[↓] 加速下落，[空格键] 瞬间降落。\n• 目标：紧密拼接消除满行以获取更高分数！",
-      synapseAiTitle: "🤖 Synapse AI",
-      synapseAiDesc: "纯净版前端大模型聊天交互界面体验。\n• 特性：拥有类似终端指令风格的 UI 设计，展示了沉浸式的 AI 思考动画和流畅的聊天信息流呈现。\n• 目标：体验下一代 AI 交互的前端视觉范式。",
-      btnPlay: "TRY IT OUT",
-    },
-    en: {
-      langToggle: "中文",
-      greeting: "Hello, World! Welcome to my Cyberpunk Geek Portfolio.",
-      aboutMeTitle: "About Me",
-      aboutMeDesc: "I am a modern Web Developer passionate about building extreme interactive and visual experiences. Here, you can experience creative mini-games and AI interaction prototypes built with Next.js and Tailwind CSS. All projects are meticulously designed for outstanding performance and extreme cyberpunk aesthetics.",
-      projectsTitle: "Projects Showcase",
-      cyberMatchTitle: "🎮 Cyber Match",
-      cyberMatchDesc: "A cyberpunk-themed memory card game hiding pairs of mysterious neon symbols.\n• How to play: Click to flip cards. Matching consecutive cards will trigger a neon glow.\n• Goal: Find all matching pairs to hack the system!",
-      neonTetrisTitle: "🎮 Neon Tetris",
-      neonTetrisDesc: "Classic Tetris featuring dynamic neon glow effects, glassmorphism panels, and a cyberpunk atmosphere.\n• Controls: Use arrow keys to move and rotate, down arrow to accelerate, and spacebar to hard drop.\n• Goal: Arrange blocks to fill rows and score points!",
-      synapseAiTitle: "🤖 Synapse AI",
-      synapseAiDesc: "A pure frontend LLM chat interface prototype.\n• Features: Terminal-style UI design, immersive AI thinking animations, and fluid chat message streams.\n• Goal: Experience the next-generation frontend visual paradigm for AI interactions.",
-      btnPlay: "TRY IT OUT",
-    }
-  };
-
-  const t = content[lang];
+  const t = content[lang as ContentKey];
 
   // Typewriter effect for the greeting
   useEffect(() => {
@@ -53,25 +121,29 @@ export default function Home() {
     // Reset
     setTypedText("");
     
-    const interval = setInterval(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    
+    intervalRef.current = setInterval(() => {
       if (currentIndex < fullText.length) {
         currentText += fullText[currentIndex];
         setTypedText(currentText);
         currentIndex++;
       } else {
-        clearInterval(interval);
+        if (intervalRef.current) clearInterval(intervalRef.current);
       }
     }, 50); // typing speed
 
-    return () => clearInterval(interval);
-  }, [lang]);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [t.greeting]);
 
   return (
     <div className="min-h-screen bg-black text-cyan-50 font-mono relative overflow-hidden selection:bg-fuchsia-500 selection:text-white">
       {/* Ambient Background Effects */}
       <div className="fixed top-[-20%] left-[-10%] w-[60%] h-[60%] bg-fuchsia-600/10 blur-[150px] rounded-full pointer-events-none" />
       <div className="fixed bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cyan-600/10 blur-[150px] rounded-full pointer-events-none" />
-      <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none"></div>
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")", backgroundRepeat: "repeat", mixBlendMode: "overlay" }}></div>
 
       {/* Header & Language Toggle */}
       <header className="relative z-50 flex justify-end p-6 max-w-6xl mx-auto w-full">
@@ -132,67 +204,34 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* Project 1: Synapse AI */}
-            <div className="group relative bg-zinc-900/40 border border-fuchsia-500/20 rounded-2xl p-6 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-fuchsia-500/60 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(192,38,211,0.3)]">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-fuchsia-500 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white group-hover:text-fuchsia-400 transition-colors">{t.synapseAiTitle}</h3>
-                  <span className="px-2 py-1 text-[10px] uppercase tracking-widest bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/20 rounded">LLM UI</span>
-                </div>
-                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line mb-8">
-                  {t.synapseAiDesc}
-                </p>
-              </div>
-              <Link 
-                href="/chat"
-                className="w-full py-3 px-4 bg-white/5 border border-white/10 hover:bg-fuchsia-500 hover:border-fuchsia-500 text-white text-sm font-bold tracking-widest uppercase rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
-              >
-                {t.btnPlay}
-                <svg className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </Link>
-            </div>
+            <ProjectCard
+              title={t.synapseAiTitle}
+              description={t.synapseAiDesc}
+              href="/chat"
+              color="fuchsia"
+              tag="LLM UI"
+              btnText={t.btnPlay}
+            />
 
             {/* Project 2: Neon Tetris */}
-            <div className="group relative bg-zinc-900/40 border border-cyan-500/20 rounded-2xl p-6 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-cyan-500/60 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(34,211,238,0.3)]">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-400 to-blue-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">{t.neonTetrisTitle}</h3>
-                  <span className="px-2 py-1 text-[10px] uppercase tracking-widest bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded">GAME</span>
-                </div>
-                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line mb-8">
-                  {t.neonTetrisDesc}
-                </p>
-              </div>
-              <Link 
-                href="/tetris"
-                className="w-full py-3 px-4 bg-white/5 border border-white/10 hover:bg-cyan-500 hover:border-cyan-500 text-black text-sm font-bold tracking-widest uppercase rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
-              >
-                {t.btnPlay}
-                <svg className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </Link>
-            </div>
+            <ProjectCard
+              title={t.neonTetrisTitle}
+              description={t.neonTetrisDesc}
+              href="/tetris"
+              color="cyan"
+              tag="GAME"
+              btnText={t.btnPlay}
+            />
 
             {/* Project 3: Cyber Match */}
-            <div className="group relative bg-zinc-900/40 border border-purple-500/20 rounded-2xl p-6 flex flex-col justify-between overflow-hidden transition-all duration-500 hover:border-purple-500/60 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(168,85,247,0.3)] lg:col-span-1 md:col-span-2 lg:col-start-auto">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">{t.cyberMatchTitle}</h3>
-                  <span className="px-2 py-1 text-[10px] uppercase tracking-widest bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded">GAME</span>
-                </div>
-                <p className="text-sm text-zinc-400 leading-relaxed whitespace-pre-line mb-8">
-                  {t.cyberMatchDesc}
-                </p>
-              </div>
-              <Link 
-                href="/game"
-                className="w-full py-3 px-4 bg-white/5 border border-white/10 hover:bg-purple-500 hover:border-purple-500 text-white text-sm font-bold tracking-widest uppercase rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
-              >
-                {t.btnPlay}
-                <svg className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </Link>
-            </div>
+            <ProjectCard
+              title={t.cyberMatchTitle}
+              description={t.cyberMatchDesc}
+              href="/game"
+              color="purple"
+              tag="GAME"
+              btnText={t.btnPlay}
+            />
 
           </div>
         </section>
