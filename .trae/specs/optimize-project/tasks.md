@@ -43,16 +43,16 @@
   - [x] SubTask 8.3: 运行 next build 验证构建成功
   - [x] SubTask 8.4: 功能回归测试（Chat/Game/Tetris 核心流程）
 
-- [ ] Task 9: 提交 Git
-  - [ ] SubTask 9.1: git add 所有变更文件
-  - [ ] SubTask 9.2: git commit 提交优化变更
+- [x] Task 9: 提交 Git
+  - [x] SubTask 9.1: git add 所有变更文件
+  - [x] SubTask 9.2: git commit 提交优化变更
 
 # Task Dependencies
-- [Task 2] depends on [Task 1] (先完成 Tetris 重构再处理 Game，积累经验)
+- [Task 2] depends on [Task 1]
 - [Task 3] independent (可与 Task 1/2 并行)
-- [Task 4] depends on [Task 1, Task 2] (持久化依赖稳定的状态管理)
+- [Task 4] depends on [Task 1, Task 2]
 - [Task 5] independent (可与任何 Task 并行)
-- [Task 6] depends on [Task 1, Task 2, Task 3] (代码分割依赖组件稳定)
-- [Task 7] depends on [Task 1] (渲染优化依赖游戏循环架构确定)
-- [Task 8] depends on [Task 1-7] (所有优化完成后验证)
-- [Task 9] depends on [Task 8] (验证通过后提交)
+- [Task 6] depends on [Task 1, Task 2, Task 3]
+- [Task 7] depends on [Task 1]
+- [Task 8] depends on [Task 1-7]
+- [Task 9] depends on [Task 8]

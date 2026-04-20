@@ -152,17 +152,18 @@ export default function Game() {
     moves: 0,
     isWin: false,
   });
-  const [isClient, setIsClient] = useState(false);
-  const [bestMoves, setBestMoves] = useState<number | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard Next.js hydration pattern
-    setIsClient(true);
+  const [bestMoves, setBestMoves] = useState<number | null>(() => {
+    if (typeof window === "undefined") return null;
     try {
       const stored = localStorage.getItem("cyber-match-best");
-      if (stored !== null) setBestMoves(Number(stored));
-    } catch {}
+      return stored !== null ? Number(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
     dispatch({ type: "INIT_GAME" });
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -210,8 +211,6 @@ export default function Game() {
   const handleCardClick = useCallback((index: number) => {
     dispatch({ type: "FLIP_CARD", index });
   }, []);
-
-  if (!isClient) return null;
 
   return (
     <div className="min-h-screen bg-black text-cyan-400 font-mono flex flex-col items-center py-12 relative overflow-hidden">

@@ -60,7 +60,6 @@ const content = {
   }
 };
 
-type ContentKey = keyof typeof content;
 type Lang = "zh" | "en";
 
 // Memoized project card component
@@ -104,13 +103,13 @@ ProjectCard.displayName = "ProjectCard";
 export default function Home() {
   const [lang, setLang] = useState<Lang>("zh");
   const [typedText, setTypedText] = useState("");
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const toggleLang = useCallback(() => {
     setLang(prevLang => prevLang === "zh" ? "en" : "zh");
   }, []);
 
-  const t = content[lang as ContentKey];
+  const t = content[lang];
 
   // Typewriter effect for the greeting
   useEffect(() => {

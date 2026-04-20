@@ -154,8 +154,6 @@ export default function Tetris() {
 
   // 根据等级计算下落间隔，最高速度限制为 100ms
   const dropInterval = Math.max(100, 1000 - (level - 1) * 100);
-  const dropIntervalRef = useRef(dropInterval);
-  dropIntervalRef.current = dropInterval;
 
   useEffect(() => {
     try {
@@ -294,7 +292,7 @@ export default function Tetris() {
     if (!gameOver && !isPaused) {
       intervalRef.current = setInterval(() => {
         moveDown();
-      }, dropIntervalRef.current);
+      }, dropInterval);
     }
     return () => {
       if (intervalRef.current) {
@@ -302,8 +300,7 @@ export default function Tetris() {
         intervalRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- moveDown reads from refs via interval
-  }, [gameOver, isPaused]);
+  }, [dropInterval, gameOver, isPaused, moveDown]);
 
   // --- 键盘事件监听 ---
   useEffect(() => {
