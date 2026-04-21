@@ -2,8 +2,8 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6efe3;
+  --foreground: #15130f;
 }
 
 @theme inline {
@@ -22,6 +22,20 @@
 }
 
 body {
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
+  background-image:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.7), transparent 38%),
+    linear-gradient(180deg, rgba(255, 250, 243, 0.85), rgba(246, 239, 227, 1));
+}
+
+::selection {
+  background: rgba(180, 83, 9, 0.16);
+  color: var(--foreground);
+}
+
+a,
+button {
+  outline-color: rgba(180, 83, 9, 0.55);
 }

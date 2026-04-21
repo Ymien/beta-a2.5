@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { ArrowUpRight, FileText, Sparkles, WandSparkles } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
 import Hitokoto from "@/components/Hitokoto";
 import MusicPlayer from "@/components/MusicPlayer";
@@ -11,125 +12,242 @@ import { useLang } from "@/components/LangProvider";
 export default function Home() {
   const { lang } = useLang();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/posts")
+    const controller = new AbortController();
+
+    setLoading(true);
+    fetch("/api/posts", { signal: controller.signal })
       .then((r) => r.json())
-      .then((data) => setPosts(data))
-      .catch(() => setPosts([]));
+      .then((data) => setPosts(Array.isArray(data) ? data : []))
+      .catch(() => setPosts([]))
+      .finally(() => setLoading(false));
+
+    return () => controller.abort();
   }, []);
 
-  const t = useMemo(
-    () =>
-      lang === "zh"
-        ? {
-            heroTitle: "留白",
-            heroSubtitle: "随想 · 随心",
-            heroDesc:
-              "把一些想法留在这里。不是宣言，也不赶进度。右上角目录是入口。",
-            sectionNotes: "随想",
-            readMore: "打开阅读 →",
-            footerCopyright: "© 2026 Xyu · 留白",
-          }
-        : {
-            heroTitle: "Blank Space",
-            heroSubtitle: "Notes · Drift · By heart",
-            heroDesc:
-              "A small page to keep what passes through — a sentence, a sketch, a thought that refuses to leave.",
-            sectionNotes: "Notes",
-            readMore: "Read →",
-            footerCopyright: "© 2026 Xyu · Blank Space",
-          },
-    [lang]
-  );
+  const t =
+    lang === "zh"
+      ? {
+          heroEyebrow: "个人站点 / Notes & Experiments",
+          heroTitle: "把想法、实验和轻量作品放在同一张桌面上。",
+          heroDesc:
+            "我把文章、对话页面和小型互动项目整理成一个更清晰的入口。内容保持安静，布局更有秩序，移动端也更容易浏览。",
+          heroPrimary: "查看最新文章",
+          heroSecondary: "进入对话页",
+          heroMeta: ["双语切换", "博客内容直读", "更清晰的导航"],
+          featureTitle: "入口区",
+          featureDesc: "从写作、AI 对话到互动实验，所有页面现在都有统一的视觉节奏。",
+          postsTitle: "最新文章",
+          postsDesc: "按时间排序的 Markdown 文章列表。",
+          loading: "正在加载文章…",
+          empty: "暂时还没有文章。",
+          readMore: "继续阅读",
+          footerCopyright: "© 2026 Xyu · Blank Space",
+        }
+      : {
+          heroEyebrow: "Personal site / Notes & Experiments",
+          heroTitle: "One calm surface for writing, experiments, and playful tools.",
+          heroDesc:
+            "Notes, small interactive pages, and AI experiments now share a cleaner layout with stronger hierarchy and a smoother mobile experience.",
+          heroPrimary: "Browse latest notes",
+          heroSecondary: "Open chat",
+          heroMeta: ["Bilingual switch", "Direct blog reads", "Cleaner navigation"],
+          featureTitle: "Entry points",
+          featureDesc: "Writing, dialog, and experiments now follow the same visual rhythm.",
+          postsTitle: "Latest notes",
+          postsDesc: "Markdown posts ordered by date.",
+          loading: "Loading posts…",
+          empty: "No posts yet.",
+          readMore: "Continue reading",
+          footerCopyright: "© 2026 Xyu · Blank Space",
+        };
+
+  const featuredPost = posts[0];
+  const morePosts = featuredPost ? posts.slice(1) : posts;
+  const quickLinks = [
+    {
+      href: "/chat",
+      label: lang === "zh" ? "对话" : "Dialog",
+      desc: lang === "zh" ? "多模型聊天与交互" : "Multi-model conversation space",
+    },
+    {
+      href: "/popup",
+      label: "PopupMorph",
+      desc: lang === "zh" ? "弹窗形状实验" : "Shape-morphing popup playground",
+    },
+    {
+      href: "/tetris",
+      label: "Tetris",
+      desc: lang === "zh" ? "霓虹风格小游戏" : "Arcade-style neon blocks",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#fbf7ef] text-[#15130f]">
+    <div className="min-h-screen bg-[#f6efe3] text-[#15130f]">
       <SiteHeader active="home" />
 
-      {/* Main Content */}
-      <main className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
-        
-        {/* Hero Section */}
-        <section className="relative grid grid-cols-1 gap-10 overflow-hidden rounded-[32px] border border-black/10 bg-white/70 px-6 py-10 shadow-[0_18px_70px_rgba(0,0,0,0.08)] backdrop-blur-xl md:grid-cols-[1.15fr_0.85fr] md:px-10 md:py-14">
-          <div className="flex flex-col items-start gap-6">
-            <div className="relative inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-2 text-xs font-medium text-black/55">
-              <img
-                src="/avatar.svg"
-                alt="Xyu"
-                className="h-5 w-5 rounded-full border border-black/10 bg-white"
-              />
-              <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
-              Xyu · {lang === "zh" ? "开发者" : "Developer"}
+      <main className="mx-auto max-w-6xl px-4 pb-14 pt-6 md:px-6 md:pb-20 md:pt-8">
+        <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="relative overflow-hidden rounded-[36px] border border-black/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(249,241,227,0.92))] px-6 py-8 shadow-[0_24px_90px_rgba(15,23,42,0.08)] md:px-10 md:py-10">
+            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-2 text-xs font-semibold tracking-[0.18em] text-black/50 uppercase">
+              <Sparkles className="h-3.5 w-3.5 text-[#b45309]" />
+              {t.heroEyebrow}
             </div>
-            <h1 className="relative font-[var(--font-display)] text-5xl font-medium leading-[0.92] tracking-tight text-[#15130f] md:text-7xl">
-              {t.heroTitle}
-            </h1>
-            <div className="relative text-sm font-medium tracking-[0.22em] text-black/45 uppercase">
-              {t.heroSubtitle}
-            </div>
-            <p className="relative max-w-xl text-base leading-relaxed text-black/60 md:text-lg">
-              {t.heroDesc}
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <a
-                href="https://github.com/Ymien"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-5 py-2.5 text-sm font-medium text-black/70 shadow-sm transition hover:bg-white"
-              >
-                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                  <path
-                    fillRule="evenodd"
-                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                GitHub
-              </a>
-            </div>
-          </div>
-          <div className="relative flex items-center justify-center">
-            <Hitokoto />
-          </div>
-        </section>
 
-        {/* Blog Posts Section */}
-        <section id="blog" className="mt-14">
-          <div className="mb-6 flex items-center justify-between">
-            <h3 className="font-[var(--font-display)] text-2xl font-medium tracking-tight text-[#15130f] md:text-3xl">
-              {t.sectionNotes}
-            </h3>
-            <div className="hidden text-sm text-black/40 md:block">Markdown</div>
+            <div className="mt-6 flex flex-col items-start gap-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-2 text-xs font-medium text-black/60">
+                <img
+                  src="/avatar.svg"
+                  alt="Xyu"
+                  className="h-5 w-5 rounded-full border border-black/10 bg-white"
+                />
+                <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />
+                Xyu · {lang === "zh" ? "开发者" : "Developer"}
+              </div>
+
+              <h1 className="max-w-3xl font-[var(--font-display)] text-5xl leading-[0.95] font-medium tracking-tight text-[#15130f] md:text-7xl">
+                {t.heroTitle}
+              </h1>
+
+              <p className="max-w-2xl text-base leading-8 text-black/65 md:text-lg">
+                {t.heroDesc}
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="#posts"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#15130f] px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
+                >
+                  <FileText className="h-4 w-4" />
+                  {t.heroPrimary}
+                </Link>
+                <Link
+                  href="/chat"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-black/10 bg-white/80 px-5 py-3 text-sm font-medium text-black/70 transition hover:bg-white"
+                >
+                  <WandSparkles className="h-4 w-4 text-[#b45309]" />
+                  {t.heroSecondary}
+                </Link>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                {t.heroMeta.map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-black/10 bg-white/75 px-4 py-2 text-xs font-medium text-black/55"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          
-          <div className="flex flex-col gap-6 rounded-[28px] border border-black/10 bg-white/70 px-6 py-8 shadow-[0_18px_70px_rgba(0,0,0,0.06)] backdrop-blur-xl md:px-10 md:py-10">
-            {posts.map(post => (
-              <article key={post.slug} className="group flex flex-col md:flex-row gap-6 md:gap-12 items-start text-left">
-                <time className="text-sm font-mono text-black/45 md:w-32 flex-shrink-0 md:pt-1">
-                  {post.date}
-                </time>
-                <div className="flex-1">
-                  <h4 className="text-xl md:text-2xl font-semibold text-[#15130f] group-hover:text-[#b45309] transition-colors mb-3">
-                    <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-                  </h4>
-                  <p className="text-black/60 leading-relaxed mb-3">
-                    {post.excerpt}
-                  </p>
-                  <Link href={`/blog/${post.slug}`} className="text-sm text-[#b45309] font-medium group-hover:underline inline-flex items-center gap-2">
-                    {t.readMore}
-                    <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                  </Link>
+
+          <div className="grid gap-6">
+            <div className="rounded-[32px] border border-black/10 bg-[#15130f] px-6 py-7 text-white shadow-[0_24px_90px_rgba(15,23,42,0.16)] md:px-7">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-[11px] font-semibold tracking-[0.2em] text-white/55 uppercase">
+                    {t.featureTitle}
+                  </div>
+                  <p className="mt-3 max-w-sm text-sm leading-7 text-white/75">{t.featureDesc}</p>
                 </div>
-              </article>
-            ))}
+                <ArrowUpRight className="h-5 w-5 text-[#fbbf24]" />
+              </div>
+
+              <div className="mt-6 grid gap-3">
+                {quickLinks.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="group flex cursor-pointer items-center justify-between rounded-2xl border border-white/10 bg-white/6 px-4 py-4 transition hover:bg-white/10"
+                  >
+                    <div>
+                      <div className="text-sm font-medium text-white">{item.label}</div>
+                      <div className="mt-1 text-xs leading-6 text-white/60">{item.desc}</div>
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-white/55 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[32px] border border-black/10 bg-white/75 p-5 shadow-[0_20px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+              <Hitokoto />
+            </div>
           </div>
         </section>
 
+        <section id="posts" className="mt-8 rounded-[36px] border border-black/10 bg-white/70 px-6 py-8 shadow-[0_24px_90px_rgba(15,23,42,0.06)] backdrop-blur-xl md:mt-10 md:px-8 md:py-10">
+          <div className="flex flex-col gap-3 border-b border-black/10 pb-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="font-[var(--font-display)] text-3xl font-medium tracking-tight text-[#15130f] md:text-5xl">
+                {t.postsTitle}
+              </h2>
+              <p className="mt-2 text-sm leading-7 text-black/55">{t.postsDesc}</p>
+            </div>
+            <div className="text-xs font-semibold tracking-[0.2em] text-black/35 uppercase">Markdown</div>
+          </div>
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              {loading ? (
+                <div className="rounded-[28px] border border-black/10 bg-[#fffaf3] px-6 py-10 text-sm text-black/50">
+                  {t.loading}
+                </div>
+              ) : featuredPost ? (
+                <Link
+                  href={`/blog/${featuredPost.slug}`}
+                  className="group block cursor-pointer rounded-[30px] border border-black/10 bg-[#fffaf3] px-6 py-7 transition hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(15,23,42,0.08)] md:px-7"
+                >
+                  <div className="text-xs font-semibold tracking-[0.2em] text-[#b45309] uppercase">
+                    {lang === "zh" ? "精选文章" : "Featured note"}
+                  </div>
+                  <h3 className="mt-4 text-3xl font-semibold tracking-tight text-[#15130f] md:text-4xl">
+                    {featuredPost.title}
+                  </h3>
+                  <p className="mt-4 text-sm leading-7 text-black/60 md:text-base">{featuredPost.excerpt}</p>
+                  <div className="mt-8 flex items-center justify-between text-sm font-medium text-black/55">
+                    <time>{featuredPost.date}</time>
+                    <span className="inline-flex items-center gap-2 text-[#b45309]">
+                      {t.readMore}
+                      <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+                </Link>
+              ) : (
+                <div className="rounded-[28px] border border-black/10 bg-[#fffaf3] px-6 py-10 text-sm text-black/50">
+                  {t.empty}
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-4">
+              {morePosts.map((post) => (
+                <Link
+                  key={post.slug}
+                  href={`/blog/${post.slug}`}
+                  className="group flex cursor-pointer flex-col rounded-[28px] border border-black/10 bg-white px-5 py-5 transition hover:-translate-y-0.5 hover:bg-[#fffaf3] hover:shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                >
+                  <div className="text-xs font-semibold tracking-[0.18em] text-black/35 uppercase">{post.date}</div>
+                  <h3 className="mt-3 text-xl font-semibold tracking-tight text-[#15130f] transition-colors group-hover:text-[#b45309]">
+                    {post.title}
+                  </h3>
+                  <p className="mt-3 flex-1 text-sm leading-7 text-black/58">{post.excerpt}</p>
+                  <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-[#b45309]">
+                    {t.readMore}
+                    <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-black/10 bg-[#fbf7ef]">
+      <footer className="border-t border-black/10 bg-[#f6efe3]">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-10 text-center text-sm text-black/45 md:flex-row md:px-6">
           <div>{t.footerCopyright}</div>
           <a

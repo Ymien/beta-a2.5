@@ -24,19 +24,24 @@ export default function Hitokoto() {
   );
 
   useEffect(() => {
+    let cancelled = false;
+
     if (lang === "zh") {
       fetch("https://v1.hitokoto.cn/?c=i&encode=json")
         .then((res) => res.json())
         .then((data) => {
-          if (data?.hitokoto) setQuote(data);
+          if (!cancelled && data?.hitokoto) setQuote(data);
         })
         .catch(() => {});
-      return;
+      return () => {
+        cancelled = true;
+      };
     }
 
     fetch("https://api.quotable.io/random")
       .then((res) => res.json())
       .then((data) => {
+        if (cancelled) return;
         if (data?.content) {
           setQuote({ hitokoto: data.content, from: data.author || "Quotable" });
         } else {
@@ -45,9 +50,14 @@ export default function Hitokoto() {
         }
       })
       .catch(() => {
+        if (cancelled) return;
         const idx = new Date().getDate() % fallbackEn.length;
         setQuote(fallbackEn[idx]);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [lang, fallbackEn]);
 
   return (

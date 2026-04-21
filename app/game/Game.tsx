@@ -2,18 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-
-const EMOJIS = ["🚀", "🛸", "👾", "🤖", "🔮", "🌌", "💻", "⚡"];
-
-interface CardData {
-  id: number;
-  emoji: string;
-  isFlipped: boolean;
-  isMatched: boolean;
-}
+import { createGameCards, type GameCard } from "@/lib/game";
 
 export default function Game() {
-  const [cards, setCards] = useState<CardData[]>([]);
+  const [cards, setCards] = useState<GameCard[]>([]);
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
   const [isWin, setIsWin] = useState(false);
@@ -25,15 +17,7 @@ export default function Game() {
   }, []);
 
   const initializeGame = () => {
-    const shuffledCards = [...EMOJIS, ...EMOJIS]
-      .sort(() => Math.random() - 0.5)
-      .map((emoji, index) => ({
-        id: index,
-        emoji,
-        isFlipped: false,
-        isMatched: false,
-      }));
-    setCards(shuffledCards);
+    setCards(createGameCards());
     setFlippedIndices([]);
     setMoves(0);
     setIsWin(false);

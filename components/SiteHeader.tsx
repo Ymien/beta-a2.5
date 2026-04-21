@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Compass, Languages, Menu, Sparkles, X } from "lucide-react";
 import { useLang } from "@/components/LangProvider";
 
 type NavItem = {
@@ -14,6 +15,7 @@ type NavItem = {
 export default function SiteHeader(props: { active?: string }) {
   const { active } = props;
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const { lang, toggleLang } = useLang();
 
   const items = useMemo<NavItem[]>(
@@ -38,28 +40,68 @@ export default function SiteHeader(props: { active?: string }) {
     [lang]
   );
 
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/" || active === "home";
+    }
+
+    if (href.startsWith("/blog/")) {
+      return pathname.startsWith("/blog/") || active === "/blog";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`) || active === href;
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full bg-transparent">
       <div className="mx-auto max-w-6xl px-4 py-4 md:px-6">
-        <div className="rounded-[28px] border border-black/10 bg-[#fbf7ef]/85 shadow-[0_16px_50px_rgba(0,0,0,0.12)] backdrop-blur-xl">
-          <div className="flex h-14 items-center justify-between px-4 md:px-6">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full border border-black/10 bg-white/80 p-1">
+        <div className="overflow-hidden rounded-[32px] border border-black/10 bg-[rgba(255,251,245,0.8)] shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-2xl">
+          <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
+            <Link href="/" className="flex min-w-0 items-center gap-3 rounded-full pr-2 transition hover:opacity-90">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white/90 p-1 shadow-sm">
                 <img src="/avatar.svg" alt="Xyu" className="h-full w-full rounded-full" />
               </div>
-              <div className="flex flex-col leading-none">
-                <span className="font-[var(--font-display)] text-[18px] font-medium tracking-tight text-[#15130f]">
+              <div className="min-w-0">
+                <div className="font-[var(--font-display)] text-xl font-medium tracking-tight text-[#15130f]">
                   Blank Space
-                </span>
-                <span className="text-[11px] text-black/45">Xyu</span>
+                </div>
+                <div className="truncate text-[11px] tracking-[0.22em] text-black/45 uppercase">
+                  {lang === "zh" ? "写作 · 实验 · 小作品" : "Notes · Experiments · Play"}
+                </div>
               </div>
             </Link>
+
+            <nav className="hidden items-center gap-2 lg:flex" aria-label={lang === "zh" ? "主导航" : "Primary navigation"}>
+              {items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isActive(item.href)
+                      ? "bg-[#15130f] text-white shadow-[0_12px_30px_rgba(21,19,15,0.18)]"
+                      : "bg-white/70 text-black/65 hover:bg-white hover:text-black"
+                  }`}
+                >
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </nav>
 
             <div className="relative flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setOpen((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-2 text-sm font-medium text-black/70 shadow-sm transition hover:bg-white"
+                onClick={toggleLang}
+                className="hidden cursor-pointer items-center gap-2 rounded-full border border-black/10 bg-white/75 px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-white md:inline-flex"
+                aria-label={lang === "zh" ? "切换语言" : "Toggle language"}
+              >
+                <Languages className="h-4 w-4" />
+                <span>{lang === "zh" ? "EN" : "中文"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setOpen((value) => !value)}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-black/10 bg-white/75 px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-white lg:hidden"
                 aria-label={lang === "zh" ? "打开目录" : "Open menu"}
                 aria-expanded={open}
               >
@@ -68,59 +110,58 @@ export default function SiteHeader(props: { active?: string }) {
               </button>
 
               <div
-                className={`absolute right-0 top-[calc(100%+10px)] w-[min(360px,calc(100vw-2rem))] rounded-3xl border border-black/10 bg-white/95 p-2 shadow-[0_22px_90px_rgba(0,0,0,0.22)] ${
+                className={`absolute right-0 top-[calc(100%+12px)] w-[min(380px,calc(100vw-2rem))] rounded-[28px] border border-black/10 bg-white/95 p-3 shadow-[0_30px_90px_rgba(15,23,42,0.16)] ${
                   open ? "block" : "hidden"
                 }`}
                 role="menu"
               >
-                <div className="px-3 pb-2 pt-1 flex items-center justify-between">
-                  <div className="text-[11px] font-medium tracking-widest text-black/45">
-                    {lang === "zh" ? "目录" : "MENU"}
+                <div className="flex items-center justify-between rounded-2xl bg-[#f6efe3] px-4 py-3">
+                  <div>
+                    <div className="text-[11px] font-semibold tracking-[0.2em] text-black/45 uppercase">
+                      {lang === "zh" ? "导航" : "Explore"}
+                    </div>
+                    <div className="mt-1 text-sm text-black/65">
+                      {lang === "zh" ? "文章、实验和互动页面入口" : "Jump between notes, tools, and playful pages."}
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      toggleLang();
-                      setOpen(false);
-                    }}
-                    className="rounded-full border border-black/10 bg-white/80 px-3 py-1 text-[11px] font-medium text-black/55 transition hover:bg-white"
-                  >
-                    {lang === "zh" ? "EN" : "中文"}
-                  </button>
+                  <Compass className="h-5 w-5 text-[#b45309]" />
                 </div>
 
-                <div className="px-3 pb-2 text-[11px] text-black/40">
-                  {lang === "zh" ? "轻写 · 轻做" : "Write lightly · Make lightly"}
-                </div>
-
-                <div className="grid grid-cols-1 gap-1">
-                  {items.map((item) => {
-                    const isActive =
-                      (active && item.href === active) ||
-                      (active === "home" && item.href === "/") ||
-                      (active === "chat" && item.href === "/chat") ||
-                      (active === "popup" && item.href === "/popup");
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setOpen(false)}
-                        className={`flex items-center justify-between rounded-2xl px-4 py-3 transition ${
-                          isActive
-                            ? "bg-black/5 text-[#b45309]"
-                            : "text-black/70 hover:bg-black/5 hover:text-black"
-                        }`}
-                        role="menuitem"
-                      >
-                        <span className="flex flex-col">
-                          <span className="text-sm font-medium">{item.label}</span>
-                          <span className="text-[11px] text-black/45">{item.desc}</span>
+                <div className="mt-3 grid grid-cols-1 gap-2">
+                  {items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={`flex cursor-pointer items-start justify-between rounded-2xl px-4 py-3 transition ${
+                        isActive(item.href)
+                          ? "bg-[#15130f] text-white"
+                          : "bg-[#fffaf3] text-black/75 hover:bg-[#f6efe3] hover:text-black"
+                      }`}
+                      role="menuitem"
+                    >
+                      <span>
+                        <span className="block text-sm font-medium">{item.label}</span>
+                        <span className={`mt-1 block text-[11px] ${isActive(item.href) ? "text-white/70" : "text-black/45"}`}>
+                          {item.desc}
                         </span>
-                        <span className="text-black/30">↗</span>
-                      </Link>
-                    );
-                  })}
+                      </span>
+                      <Sparkles className={`mt-0.5 h-4 w-4 ${isActive(item.href) ? "text-white/80" : "text-[#b45309]"}`} />
+                    </Link>
+                  ))}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleLang();
+                    setOpen(false);
+                  }}
+                  className="mt-3 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-medium text-black/70 transition hover:bg-[#f6efe3] md:hidden"
+                >
+                  <Languages className="h-4 w-4" />
+                  <span>{lang === "zh" ? "切换到 English" : "切换到中文"}</span>
+                </button>
               </div>
             </div>
           </div>

@@ -93,6 +93,14 @@ export default function MusicPlayer() {
     if (isPlaying) playFromGesture();
   }, [track?.url]);
 
+  useEffect(() => {
+    return () => {
+      if (hoverCloseTimerRef.current) {
+        window.clearTimeout(hoverCloseTimerRef.current);
+      }
+    };
+  }, []);
+
   const seek = (ratio: number) => {
     if (!audioRef.current) return;
     if (!Number.isFinite(duration) || duration <= 0) return;
@@ -101,21 +109,17 @@ export default function MusicPlayer() {
     setCurrentTime(next);
   };
 
-  const setTrackByIndex = async (nextIndex: number, autoplay: boolean) => {
+  const setTrackByIndex = (nextIndex: number) => {
     const i = ((nextIndex % tracks.length) + tracks.length) % tracks.length;
     setTrackIndex(i);
-    if (!audioRef.current) return;
-    audioRef.current.src = tracks[i].url;
-    audioRef.current.load();
-    if (autoplay) await playFromGesture();
   };
 
-  const nextTrack = async (autoplay: boolean) => {
-    await setTrackByIndex(trackIndex + 1, autoplay);
+  const nextTrack = () => {
+    setTrackByIndex(trackIndex + 1);
   };
 
-  const prevTrack = async (autoplay: boolean) => {
-    await setTrackByIndex(trackIndex - 1, autoplay);
+  const prevTrack = () => {
+    setTrackByIndex(trackIndex - 1);
   };
 
   return (
@@ -164,7 +168,7 @@ export default function MusicPlayer() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => prevTrack(isPlaying)}
+                  onClick={prevTrack}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/80 text-black/60 transition hover:bg-white hover:text-black"
                   aria-label={lang === "zh" ? "上一首" : "Previous"}
                 >
@@ -191,7 +195,7 @@ export default function MusicPlayer() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => nextTrack(isPlaying)}
+                  onClick={nextTrack}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white/80 text-black/60 transition hover:bg-white hover:text-black"
                   aria-label={lang === "zh" ? "下一首" : "Next"}
                 >
@@ -244,9 +248,9 @@ export default function MusicPlayer() {
                 if (!audioRef.current) return;
                 setCurrentTime(audioRef.current.currentTime || 0);
               }}
-              onEnded={() => nextTrack(true)}
-              onError={() => setError(lang === "zh" ? "音频加载失败（可能被网络拦截）" : "Audio failed to load (network blocked).")}
-            />
+               onEnded={nextTrack}
+               onError={() => setError(lang === "zh" ? "音频加载失败（可能被网络拦截）" : "Audio failed to load (network blocked).")}
+             />
           </div>
         )}
       </div>
