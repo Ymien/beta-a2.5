@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 export type Lang = "zh" | "en";
 
@@ -14,12 +14,14 @@ const LangContext = createContext<LangContextValue | null>(null);
 
 export function LangProvider(props: { children: React.ReactNode }) {
   const { children } = props;
-  const [lang, setLangState] = useState<Lang>("zh");
+  const [lang, setLangState] = useState<Lang>(() => {
+    if (typeof window === "undefined") {
+      return "zh";
+    }
 
-  useEffect(() => {
     const stored = window.localStorage.getItem("xyu_lang");
-    if (stored === "zh" || stored === "en") setLangState(stored);
-  }, []);
+    return stored === "zh" || stored === "en" ? stored : "zh";
+  });
 
   const setLang = (next: Lang) => {
     setLangState(next);
@@ -28,9 +30,7 @@ export function LangProvider(props: { children: React.ReactNode }) {
 
   const toggleLang = () => setLang(lang === "zh" ? "en" : "zh");
 
-  const value = useMemo(() => ({ lang, setLang, toggleLang }), [lang]);
-
-  return <LangContext.Provider value={value}>{children}</LangContext.Provider>;
+  return <LangContext.Provider value={{ lang, setLang, toggleLang }}>{children}</LangContext.Provider>;
 }
 
 export function useLang() {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Compass, Languages, Menu, Sparkles, X } from "lucide-react";
@@ -59,7 +60,7 @@ export default function SiteHeader(props: { active?: string }) {
           <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
             <Link href="/" className="flex min-w-0 items-center gap-3 rounded-full pr-2 transition hover:opacity-90">
               <div className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white/90 p-1 shadow-sm">
-                <img src="/avatar.svg" alt="Xyu" className="h-full w-full rounded-full" />
+                <Image src="/avatar.svg" alt="Xyu" width={44} height={44} className="h-full w-full rounded-full" />
               </div>
               <div className="min-w-0">
                 <div className="font-[var(--font-display)] text-xl font-medium tracking-tight text-[#15130f]">

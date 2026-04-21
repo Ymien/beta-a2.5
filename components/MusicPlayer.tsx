@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Music2, Volume2, VolumeX, SkipBack, SkipForward } from "lucide-react";
 import { useLang } from "@/components/LangProvider";
 
@@ -46,6 +46,21 @@ export default function MusicPlayer() {
 
   const track = tracks[Math.min(trackIndex, tracks.length - 1)] || tracks[0];
 
+  const getPlaybackErrorMessage = useCallback(
+    (error: unknown) => {
+      if (error instanceof DOMException && error.name === "NotAllowedError") {
+        return lang === "zh"
+          ? "浏览器限制播放：请再次点击播放"
+          : "Playback blocked: click play again.";
+      }
+
+      return lang === "zh"
+        ? "无法播放该音频源（可能被网络拦截）"
+        : "Failed to play this source (maybe blocked).";
+    },
+    [lang]
+  );
+
   const formatTime = (s: number) => {
     if (!Number.isFinite(s) || s < 0) return "0:00";
     const m = Math.floor(s / 60);
@@ -53,26 +68,18 @@ export default function MusicPlayer() {
     return `${m}:${String(r).padStart(2, "0")}`;
   };
 
-  const playFromGesture = async () => {
+  const playFromGesture = useCallback(async () => {
     if (!audioRef.current) return;
     try {
       setError(null);
       audioRef.current.volume = 0.9;
       await audioRef.current.play();
       setIsPlaying(true);
-    } catch (e: any) {
+    } catch (error: unknown) {
       setIsPlaying(false);
-      const msg =
-        e?.name === "NotAllowedError"
-          ? lang === "zh"
-            ? "浏览器限制播放：请再次点击播放"
-            : "Playback blocked: click play again."
-          : lang === "zh"
-          ? "无法播放该音频源（可能被网络拦截）"
-          : "Failed to play this source (maybe blocked).";
-      setError(msg);
+      setError(getPlaybackErrorMessage(error));
     }
-  };
+  }, [getPlaybackErrorMessage]);
 
   const pause = () => {
     if (!audioRef.current) return;
@@ -83,15 +90,6 @@ export default function MusicPlayer() {
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = isMuted;
   }, [isMuted]);
-
-  useEffect(() => {
-    if (!audioRef.current) return;
-    setError(null);
-    setCurrentTime(0);
-    setDuration(0);
-    audioRef.current.load();
-    if (isPlaying) playFromGesture();
-  }, [track?.url]);
 
   useEffect(() => {
     return () => {
@@ -111,6 +109,9 @@ export default function MusicPlayer() {
 
   const setTrackByIndex = (nextIndex: number) => {
     const i = ((nextIndex % tracks.length) + tracks.length) % tracks.length;
+    setError(null);
+    setCurrentTime(0);
+    setDuration(0);
     setTrackIndex(i);
   };
 
@@ -236,6 +237,7 @@ export default function MusicPlayer() {
 
             <audio
               ref={audioRef}
+              key={track?.url}
               src={track?.url}
               preload="metadata"
               crossOrigin="anonymous"
@@ -243,6 +245,9 @@ export default function MusicPlayer() {
               onLoadedMetadata={() => {
                 if (!audioRef.current) return;
                 setDuration(audioRef.current.duration || 0);
+                if (isPlaying) {
+                  void playFromGesture();
+                }
               }}
               onTimeUpdate={() => {
                 if (!audioRef.current) return;

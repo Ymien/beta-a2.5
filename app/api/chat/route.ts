@@ -1,6 +1,25 @@
 export const runtime = "nodejs";
 
-function tryParseJson(text: string): any | null {
+type RequestMessage = {
+  role: "user" | "assistant" | "system" | "ai";
+  content: string;
+};
+
+type RequestBody = {
+  messages?: RequestMessage[];
+  modelId?: string;
+  thinkingType?: "enabled" | "disabled" | "auto";
+};
+
+type ParsedErrorShape = {
+  message?: string;
+  code?: string;
+  request_id?: string;
+  requestId?: string;
+  error?: ParsedErrorShape | string;
+};
+
+function tryParseJson(text: string): unknown | null {
   try {
     return JSON.parse(text);
   } catch {
@@ -8,9 +27,27 @@ function tryParseJson(text: string): any | null {
   }
 }
 
+function isRequestMessage(value: unknown): value is RequestMessage {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const maybeMessage = value as Record<string, unknown>;
+  return typeof maybeMessage.role === "string" && typeof maybeMessage.content === "string";
+}
+
+function getEnvValue(key: string): string {
+  return process.env[key] || "";
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "An error occurred during chat";
+}
+
 export async function POST(req: Request) {
   try {
-    const { messages, modelId, thinkingType } = await req.json();
+    const { messages, modelId, thinkingType } = (await req.json()) as RequestBody;
+    const safeMessages = Array.isArray(messages) ? messages.filter(isRequestMessage) : [];
 
     const base = (process.env.ARK_BASE_URL || "https://ark.cn-beijing.volces.com/api/v3").replace(/\/$/, "");
 
@@ -21,13 +58,12 @@ export async function POST(req: Request) {
 
     const toChatMessages = () => [
       { role: "system", content: system },
-      ...(Array.isArray(messages) ? messages : []),
+      ...safeMessages,
     ];
 
     const toResponsesInput = () => [
       { role: "system", content: [{ type: "input_text", text: system }] },
-      ...(Array.isArray(messages)
-        ? messages.map((m: any) => ({
+      ...safeMessages.map((m) => ({
             role: m.role === "ai" ? "assistant" : m.role,
             content: [
               {
@@ -35,8 +71,7 @@ export async function POST(req: Request) {
                 text: String(m.content ?? ""),
               },
             ],
-          }))
-        : []),
+          })),
     ];
 
     const modelMap: Record<
@@ -85,7 +120,7 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: "Unknown model" }), { status: 400 });
     }
 
-    const apiKey = (process.env as any)[info.apiKeyEnvKey] || "";
+    const apiKey = getEnvValue(info.apiKeyEnvKey);
     if (!apiKey) {
       return new Response(JSON.stringify({ error: `${info.apiKeyEnvKey} is not configured.` }), { status: 500 });
     }
@@ -95,7 +130,7 @@ export async function POST(req: Request) {
       Authorization: `Bearer ${apiKey}`,
     };
 
-    const model = (process.env as any)[info.modelEnvKey] || info.modelFallback;
+    const model = getEnvValue(info.modelEnvKey) || info.modelFallback;
 
     const url =
       info.endpoint === "responses" ? `${base}/responses` : `${base}/chat/completions`;
@@ -134,18 +169,28 @@ export async function POST(req: Request) {
     if (!response.ok) {
       const raw = await response.text();
       const parsed = tryParseJson(raw);
+      const parsedError = (typeof parsed === "object" && parsed !== null ? parsed : {}) as ParsedErrorShape;
       const nested =
-        parsed && typeof parsed?.error === "string" ? tryParseJson(parsed.error) : null;
-      const e = nested?.error || parsed?.error || parsed || {};
+        typeof parsedError.error === "string" ? tryParseJson(parsedError.error) : null;
+      const nestedError = (typeof nested === "object" && nested !== null ? nested : {}) as ParsedErrorShape;
+      const e =
+        (typeof nestedError.error === "object" && nestedError.error !== null
+          ? nestedError.error
+          : nestedError.error) ||
+        parsedError.error ||
+        parsedError;
+      const errorInfo = (typeof e === "object" && e !== null ? e : {}) as ParsedErrorShape;
       const message =
-        e?.message ||
-        e?.error?.message ||
+        errorInfo.message ||
+        (typeof errorInfo.error === "object" && errorInfo.error !== null ? errorInfo.error.message : undefined) ||
         (typeof raw === "string" ? raw : "Request failed");
-      const code = e?.code || e?.error?.code;
+      const code =
+        errorInfo.code ||
+        (typeof errorInfo.error === "object" && errorInfo.error !== null ? errorInfo.error.code : undefined);
       const requestId =
         (typeof message === "string" && message.match(/Request id:\s*([0-9a-f]+)/i)?.[1]) ||
-        e?.request_id ||
-        e?.requestId;
+        errorInfo.request_id ||
+        errorInfo.requestId;
 
       return new Response(
         JSON.stringify({ error: { message, code, requestId } }),
@@ -161,10 +206,10 @@ export async function POST(req: Request) {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API Chat Error:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "An error occurred during chat" }),
+      JSON.stringify({ error: getErrorMessage(error) }),
       { status: 500 }
     );
   }

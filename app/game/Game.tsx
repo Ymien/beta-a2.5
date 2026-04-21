@@ -1,20 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { createGameCards, type GameCard } from "@/lib/game";
 
 export default function Game() {
-  const [cards, setCards] = useState<GameCard[]>([]);
+  const [cards, setCards] = useState<GameCard[]>(() => createGameCards(() => 0.5));
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [moves, setMoves] = useState(0);
   const [isWin, setIsWin] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-    initializeGame();
-  }, []);
 
   const initializeGame = () => {
     setCards(createGameCards());
@@ -32,8 +26,9 @@ export default function Game() {
       return;
     }
 
-    const newCards = [...cards];
-    newCards[index].isFlipped = true;
+    const newCards = cards.map((card, cardIndex) =>
+      cardIndex === index ? { ...card, isFlipped: true } : card
+    );
     setCards(newCards);
 
     const newFlippedIndices = [...flippedIndices, index];
@@ -44,29 +39,30 @@ export default function Game() {
       const [firstIndex, secondIndex] = newFlippedIndices;
 
       if (newCards[firstIndex].emoji === newCards[secondIndex].emoji) {
-        // Match
-        newCards[firstIndex].isMatched = true;
-        newCards[secondIndex].isMatched = true;
-        setCards(newCards);
+        const matchedCards = newCards.map((card, cardIndex) =>
+          cardIndex === firstIndex || cardIndex === secondIndex
+            ? { ...card, isMatched: true }
+            : card
+        );
+        setCards(matchedCards);
         setFlippedIndices([]);
 
-        if (newCards.every((card) => card.isMatched)) {
+        if (matchedCards.every((card) => card.isMatched)) {
           setTimeout(() => setIsWin(true), 500);
         }
       } else {
-        // No match
         setTimeout(() => {
-          const resetCards = [...newCards];
-          resetCards[firstIndex].isFlipped = false;
-          resetCards[secondIndex].isFlipped = false;
+          const resetCards = newCards.map((card, cardIndex) =>
+            cardIndex === firstIndex || cardIndex === secondIndex
+              ? { ...card, isFlipped: false }
+              : card
+          );
           setCards(resetCards);
           setFlippedIndices([]);
         }, 1000);
       }
     }
   };
-
-  if (!isClient) return null;
 
   return (
     <div className="min-h-screen bg-black text-cyan-400 font-mono flex flex-col items-center py-12 relative overflow-hidden">

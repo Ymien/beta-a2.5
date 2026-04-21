@@ -6,8 +6,6 @@ import Link from "next/link";
 // --- 俄罗斯方块常量与游戏逻辑配置 ---
 const COLS = 10; // 游戏区域总列数
 const ROWS = 20; // 游戏区域总行数
-const BLOCK_SIZE = 30; // 单个方块的像素大小估算值
-
 // 方块的形状定义，0代表空白，数字代表方块种类及颜色索引
 const SHAPES = [
   [], // 索引0：空
@@ -92,7 +90,7 @@ export default function Tetris() {
   };
 
   // 核心逻辑：将当前下落到底部的方块合并到静态面板（board）中
-  const mergePieceToBoard = () => {
+  const mergePieceToBoard = useCallback(() => {
     const newBoard = board.map(row => [...row]);
     piece.shape.forEach((row, y) => {
       row.forEach((value, x) => {
@@ -134,7 +132,7 @@ export default function Tetris() {
     } else {
       setPiece(newP);
     }
-  };
+  }, [board, piece, lines, level, nextPiece]);
 
   // --- 操作与控制逻辑 ---
   // 向下移动方块
@@ -144,17 +142,17 @@ export default function Tetris() {
     } else {
       mergePieceToBoard(); // 如果向下碰撞，则合并到面板
     }
-  }, [piece, board]);
+  }, [piece, board, mergePieceToBoard]);
 
   // 水平移动方块（dir: -1 左移，1 右移）
-  const moveHorizontal = (dir: number) => {
+  const moveHorizontal = useCallback((dir: number) => {
     if (!isCollision(piece.shape, piece.x + dir, piece.y, board)) {
       setPiece(prev => ({ ...prev, x: prev.x + dir }));
     }
-  };
+  }, [piece, board]);
 
   // 旋转方块
-  const rotate = () => {
+  const rotate = useCallback(() => {
     // 矩阵顺时针旋转90度
     const rotated = piece.shape[0].map((_, index) => 
       piece.shape.map(row => row[index]).reverse()
@@ -163,17 +161,17 @@ export default function Tetris() {
     if (!isCollision(rotated, piece.x, piece.y, board)) {
       setPiece(prev => ({ ...prev, shape: rotated }));
     }
-  };
+  }, [piece, board]);
 
   // 硬降落（瞬间落到底部）
-  const hardDrop = () => {
+  const hardDrop = useCallback(() => {
     let newY = piece.y;
     while (!isCollision(piece.shape, piece.x, newY + 1, board)) {
       newY++;
     }
     setPiece(prev => ({ ...prev, y: newY }));
     // 下一次 game tick 会处理合并
-  };
+  }, [piece, board]);
 
   // --- 游戏主循环 ---
   const gameLoop = useCallback((time: number) => {
@@ -211,7 +209,7 @@ export default function Tetris() {
     };
     window.addEventListener("keydown", handleKeyDown, { passive: false });
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [piece, board, gameOver, isPaused, moveDown]);
+  }, [gameOver, isPaused, hardDrop, moveDown, moveHorizontal, rotate]);
 
   // --- UI 渲染辅助函数 ---
   // 渲染游戏网格中的单个小方格

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   SHAPES,
   parseShape,
@@ -23,6 +23,11 @@ interface CustomCell {
 
 // ---- Main Component ----
 export default function PopupController() {
+  const initialCustomGrid = Array.from({ length: 9 * 9 }, (_, index) => ({
+    x: index % 9,
+    y: Math.floor(index / 9),
+    active: false,
+  }));
   const [currentShapeIndex, setCurrentShapeIndex] = useState(0);
   const [windowStyle, setWindowStyle] = useState<WindowStyle>('tkinter');
   const [winWidth, setWinWidth] = useState(150);
@@ -32,7 +37,7 @@ export default function PopupController() {
   const [currentScript, setCurrentScript] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
-  const [customGrid, setCustomGrid] = useState<CustomCell[]>([]);
+  const [customGrid, setCustomGrid] = useState<CustomCell[]>(initialCustomGrid);
   const [useCustom, setUseCustom] = useState(false);
   const [logMessages, setLogMessages] = useState<string[]>([]);
 
@@ -41,18 +46,6 @@ export default function PopupController() {
   const isRunningRef = useRef(false);
 
   const EDITOR_COLS = 9;
-  const EDITOR_ROWS = 9;
-
-  // --- Init grid via useEffect ---
-  useEffect(() => {
-    const cells: CustomCell[] = [];
-    for (let y = 0; y < EDITOR_ROWS; y++) {
-      for (let x = 0; x < EDITOR_COLS; x++) {
-        cells.push({ x, y, active: false });
-      }
-    }
-    setCustomGrid(cells);
-  }, []);
 
   // --- Helpers ---
   const getRandomTip = useCallback(() => {

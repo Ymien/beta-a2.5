@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    allowedHosts: [".monkeycode-ai.online"],
-  } as NextConfig["experimental"] & { allowedHosts: string[] },
+  allowedDevOrigins: [".monkeycode-ai.online"],
   outputFileTracingIncludes: {
     "/blog/[slug]": ["./content/blog/**"],
     "/api/posts": ["./content/blog/**"],

@@ -48,3 +48,13 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
   - 构建使用 `npm run build`
   - 静态检查使用 `npm run lint`
   - 纯逻辑测试使用 `npm run test`
+
+[项目测试与 Next 开发配置]
+- Date: 2026-04-21
+- Context: Agent 在执行测试收口与预览验证时发现
+- Category: 测试方法
+- Instructions:
+  - 测试使用 Node 原生 test runner，命令为 `npm test`
+  - 覆盖率使用 `npm run test:coverage`
+  - `package.json` 需要保留 `"type": "module"`，避免 Node 测试出现模块类型警告
+  - Next 16 开发环境允许预览域名时应使用 `allowedDevOrigins`

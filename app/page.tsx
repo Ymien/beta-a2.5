@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, FileText, Sparkles, WandSparkles } from "lucide-react";
 import SiteHeader from "@/components/SiteHeader";
@@ -17,7 +18,6 @@ export default function Home() {
   useEffect(() => {
     const controller = new AbortController();
 
-    setLoading(true);
     fetch("/api/posts", { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => setPosts(Array.isArray(data) ? data : []))
@@ -98,9 +98,11 @@ export default function Home() {
 
             <div className="mt-6 flex flex-col items-start gap-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-2 text-xs font-medium text-black/60">
-                <img
+                <Image
                   src="/avatar.svg"
                   alt="Xyu"
+                  width={20}
+                  height={20}
                   className="h-5 w-5 rounded-full border border-black/10 bg-white"
                 />
                 <span className="inline-flex h-2 w-2 rounded-full bg-[#22c55e]" />

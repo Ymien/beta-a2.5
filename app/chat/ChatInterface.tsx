@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import SiteHeader from "@/components/SiteHeader";
@@ -20,6 +19,10 @@ interface Message {
 }
 
 type ThinkingType = "auto" | "enabled" | "disabled";
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 export default function ChatInterface() {
   const { lang } = useLang();
@@ -280,7 +283,7 @@ export default function ChatInterface() {
                 }
               }
             }
-          } catch (e) {}
+          } catch {}
         }
       }
 
@@ -303,11 +306,11 @@ export default function ChatInterface() {
           )
         );
       }
-    } catch (error: any) {
-      if (error.name !== "AbortError") {
+    } catch (error: unknown) {
+      if (!(error instanceof Error) || error.name !== "AbortError") {
         setMessages((prev) => [
-          ...prev.filter(m => m.id !== aiMessageId),
-          { id: aiMessageId, role: "system", content: `Error: ${error.message}` }
+          ...prev.filter((m) => m.id !== aiMessageId),
+          { id: aiMessageId, role: "system", content: `Error: ${getErrorMessage(error)}` }
         ]);
       }
     } finally {
